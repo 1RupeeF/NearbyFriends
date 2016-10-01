@@ -2,6 +2,7 @@ package com.example.aditya.nearbyfriends;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Geocoder;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int REQUEST_PERMISSIONS_KEY=1;
     private int PLACE_PICKER_REQUEST_CODE=123;
     private LocationManager lm;
+    private PrefUtils prefUtils;
     private String[] permissions=new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
     @Override
 
@@ -40,6 +42,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        prefUtils=new PrefUtils(this);
+        if(!prefUtils.isUsernameSet()){
+            startActivity(new Intent(this,SignUp.class));
+        }
         if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this,permissions,REQUEST_PERMISSIONS_KEY);
         }
