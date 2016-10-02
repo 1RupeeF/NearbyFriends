@@ -33,8 +33,4 @@ public class PrefUtils {
     public boolean isUsernameSet(){
         return sharedPreferences.getBoolean(USER_SET,false);
     }
-
-    private void isUserSet(){
-
-    }
 }
