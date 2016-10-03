@@ -1,6 +1,7 @@
 package com.example.aditya.nearbyfriends;
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -8,13 +9,21 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 
 import com.example.aditya.nearbyfriends.Pojos.User;
 import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
@@ -49,7 +58,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final String FIREBASE_URL= "https://nearbyfriends-1475248751089.firebaseio.com/";
 
     private DatabaseReference dRef;
-    @BindView(R.id.activity_main)  CoordinatorLayout mainLayout;
+    @BindView(R.id.activity_main) DrawerLayout mainLayout;
+    @BindView(R.id.navView) NavigationView navigationView;
     private GoogleMap gMap;
     private int REQUEST_PERMISSIONS_KEY=1;
     private int PLACE_PICKER_REQUEST_CODE=123;
@@ -76,6 +86,45 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         SupportMapFragment smf=(SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
         smf.getMapAsync(this);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.SignIn:
+                        startActivity(new Intent(getApplicationContext(),SignUp.class));
+                        break;
+                    case R.id.addFriends:
+                        //startActivity(new Intent(getApplicationContext(),AddFre));
+                        break;
+                    case R.id.search:
+                        mainLayout.closeDrawer(Gravity.LEFT);
+
+                        AlertDialog.Builder builder=new AlertDialog.Builder(MainActivity.this);
+                        builder.setTitle("Search Friend");
+                        final EditText friend=new EditText(getApplicationContext());
+                        friend.setHint("Friend's Username");
+                        friend.setTextColor(Color.BLACK);
+                        friend.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG_RTL);
+                        builder.setView(friend);
+                        builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String name=friend.getText().toString();
+                                //goToPosition();
+                            }
+                        });
+                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                               dialog.cancel();
+                            }
+                        });
+                        builder.show();
+                        break;
+                }
+                return true;
+            }
+        });
     }
 
     @Override
