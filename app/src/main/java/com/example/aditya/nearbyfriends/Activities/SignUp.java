@@ -1,4 +1,4 @@
-package com.example.aditya.nearbyfriends;
+package com.example.aditya.nearbyfriends.Activities;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.widget.Toast;
 
+import com.example.aditya.nearbyfriends.MainActivity;
 import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
+import com.example.aditya.nearbyfriends.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

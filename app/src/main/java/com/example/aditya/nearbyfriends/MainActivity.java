@@ -10,7 +10,6 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -18,15 +17,18 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
+import com.example.aditya.nearbyfriends.Activities.MyFriends;
+import com.example.aditya.nearbyfriends.Activities.SignUp;
 import com.example.aditya.nearbyfriends.Pojos.User;
 import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
+import com.example.aditya.nearbyfriends.db.FriendDB;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 
@@ -45,6 +47,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -58,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final String FIREBASE_URL= "https://nearbyfriends-1475248751089.firebaseio.com/";
 
     private DatabaseReference dRef;
+    private FriendDB fdb;
     @BindView(R.id.activity_main) DrawerLayout mainLayout;
     @BindView(R.id.navView) NavigationView navigationView;
     private GoogleMap gMap;
@@ -78,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         prefUtils=new PrefUtils(this);
         FirebaseDatabase database=FirebaseDatabase.getInstance();
         dRef=database.getReference("Users");
+        fdb=new FriendDB(this,null,null,1);
         if(!prefUtils.isUsernameSet()){
             startActivity(new Intent(this,SignUp.class));
         }
@@ -91,10 +96,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()){
                     case R.id.SignIn:
-                        startActivity(new Intent(getApplicationContext(),SignUp.class));
+                        if(!prefUtils.isUsernameSet()) {
+                            startActivity(new Intent(getApplicationContext(), SignUp.class));
+                        }
+                        else {
+                            mainLayout.closeDrawer(Gravity.LEFT);
+                            Toast.makeText(getApplicationContext(),"You are already signed In",Toast.LENGTH_SHORT).show();
+                        }
                         break;
                     case R.id.addFriends:
-                        //startActivity(new Intent(getApplicationContext(),AddFre));
+                        startActivity(new Intent(getApplicationContext(), MyFriends.class));
                         break;
                     case R.id.search:
                         mainLayout.closeDrawer(Gravity.LEFT);
@@ -110,7 +121,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String name=friend.getText().toString();
-                                //goToPosition();
+                                User u=fdb.getFriend(name);
+                                if(u==null){
+                                    Toast.makeText(getApplicationContext(),"This person is not your Friend",Toast.LENGTH_SHORT).show();
+                                }
+                                else {
+                                    CameraPosition location = new CameraPosition.Builder()
+                                            .target(new LatLng(u.getLat(), u.getLon()))
+                                            .zoom(15.5f)
+                                            .bearing(0)
+                                            .tilt(25)
+                                            .build();
+                                    gMap.moveCamera(CameraUpdateFactory.newCameraPosition(location));
+
+                                }
                             }
                         });
                         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -243,10 +267,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot users:dataSnapshot.getChildren()){
                     User nuser=users.getValue(User.class);
-                    if(!users.getKey().equals(prefUtils.getUsername())){
+                    nuser.setName(users.getKey());
+                    ArrayList<String> fnames=fdb.getAllFriendsName();
+                    if(fnames.contains(users.getKey())){
                         gMap.addMarker(new MarkerOptions()
                                 .position(new LatLng(nuser.getLat(),nuser.getLon()))
                                 .title(users.getKey()));
+                        fdb.addFriend(nuser);
                     }
                 }
             }

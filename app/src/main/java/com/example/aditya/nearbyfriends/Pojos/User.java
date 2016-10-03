@@ -9,6 +9,7 @@ public class User {
     private double lat;
     private double lon;
     private String city;
+    private String name;
 
 
     public User(){
@@ -19,10 +20,19 @@ public class User {
         this.lat = lat;
         this.lon = lon;
         this.city=city;
+        this.name="";
     }
 
     public String getCity() {
         return city;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setCity(String city) {
