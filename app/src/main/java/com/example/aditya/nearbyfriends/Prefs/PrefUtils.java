@@ -1,4 +1,4 @@
-package com.example.aditya.nearbyfriends;
+package com.example.aditya.nearbyfriends.Prefs;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -15,7 +15,7 @@ public class PrefUtils {
     private String username;
     private final String USER_SET="LoggedIn";
     private final String USERNAME="username";
-    PrefUtils(Context context){
+    public PrefUtils(Context context){
         sharedPreferences=context.getSharedPreferences("pref",MODE_PRIVATE);
         edit=sharedPreferences.edit();
     }

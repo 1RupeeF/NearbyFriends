@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.widget.Toast;
 
+import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;

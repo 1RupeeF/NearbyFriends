@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "679388454573",
+    "firebase_url": "https://nearbyfriends-1475248751089.firebaseio.com",
+    "project_id": "nearbyfriends-1475248751089",
+    "storage_bucket": "nearbyfriends-1475248751089.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:679388454573:android:dda2a79b7c3b9cc1",
+        "android_client_info": {
+          "package_name": "com.example.aditya.nearbyfriends"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "679388454573-h1n4dpb4jipv20rmpn2q8svgl2dih6l4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aditya.nearbyfriends",
+            "certificate_hash": "57B71252162CF959982B9BAB46A9EE4C6935B4C9"
+          }
+        },
+        {
+          "client_id": "679388454573-ujntbqla2v8eq6808l2r3m75utvlk16n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsSmJMmxTgw7rMygYaqRlLYE5zk3hptGM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "679388454573-ujntbqla2v8eq6808l2r3m75utvlk16n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
