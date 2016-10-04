@@ -8,55 +8,64 @@
     android:layout_height="match_parent"
     tools:openDrawer="start"
     tools:context="com.example.aditya.nearbyfriends.MainActivity">
-
-    <LinearLayout
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:orientation="vertical">
-        <fragment
-            android:layout_width="wrap_content"
-            android:layout_height="495dp"
-            android:id="@+id/maps"
-            android:name="com.google.android.gms.maps.SupportMapFragment"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:background="@android:color/darker_gray"
-            android:text="Your Location?"
-            android:textColor="@android:color/black"
-            android:textSize="15dp"/>
+        android:layout_height="match_parent">
         <LinearLayout
             android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical">
+            <fragment
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/maps"
+                android:name="com.google.android.gms.maps.SupportMapFragment"/>
+        </LinearLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_margin="15dp"
+            android:id="@+id/fab"
+            android:src="@drawable/google_maps"
+            android:layout_gravity="bottom"
+            app:backgroundTint="@android:color/holo_orange_light"
+            />
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@android:color/darker_gray"
-            android:layout_gravity="bottom">
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="bottom"
+            android:layout_margin="80dp">
+            <android.support.design.widget.FloatingActionButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:id="@+id/auto"
-                android:layout_weight="1"
-                android:background="@android:color/holo_green_dark"
-                android:layout_margin="5dp"
-                android:text="Current Location"/>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:src="@drawable/ic_gps"
+                android:visibility="invisible"
+                app:backgroundTint="@android:color/holo_green_light"/>
+            <android.support.v4.widget.Space
+                android:layout_width="40dp"
+                android:layout_height="wrap_content" />
+            <android.support.design.widget.FloatingActionButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:visibility="invisible"
                 android:id="@+id/manual"
-                android:layout_weight="1"
-                android:layout_margin="5dp"
-                android:text="Put Manually"
-                android:background="@android:color/holo_blue_dark"/>
+                app:backgroundTint="@android:color/holo_blue_dark"
+                android:src="@drawable/ic_gpsno" />
         </LinearLayout>
-    </LinearLayout>
-    <android.support.design.widget.NavigationView
-        android:layout_height="match_parent"
-        android:layout_width="wrap_content"
-        android:id="@+id/navView"
-        android:layout_gravity="start"
-        app:menu="@menu/drawer_menu"
-        >
+    </android.support.design.widget.CoordinatorLayout>
 
+    <android.support.design.widget.NavigationView
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:id="@+id/navView"
+            android:layout_gravity="start"
+            app:headerLayout="@layout/nav_header"
+            app:menu="@menu/drawer_menu"
+            >
     </android.support.design.widget.NavigationView>
+
 </android.support.v4.widget.DrawerLayout>

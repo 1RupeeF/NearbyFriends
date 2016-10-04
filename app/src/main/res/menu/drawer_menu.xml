@@ -8,7 +8,7 @@
             android:title="SignIn" />
         <item
             android:id="@+id/addFriends"
-            android:icon="@drawable/ic_wc_black_18dp"
+            android:icon="@drawable/account_plus"
             android:title="Add Friends"/>
         <item
             android:id="@+id/search"

@@ -4,24 +4,31 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.aditya.nearbyfriends.Activities.MyFriends;
@@ -64,6 +71,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FriendDB fdb;
     @BindView(R.id.activity_main) DrawerLayout mainLayout;
     @BindView(R.id.navView) NavigationView navigationView;
+    @BindView(R.id.auto) FloatingActionButton auto;
+    @BindView(R.id.manual) FloatingActionButton manual;
+    //@BindView(R.id.toolbar) Toolbar toolbar;
     private GoogleMap gMap;
     private int REQUEST_PERMISSIONS_KEY=1;
     private int PLACE_PICKER_REQUEST_CODE=123;
@@ -72,17 +82,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private PrefUtils prefUtils;
     private String[] permissions=new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
+
     @Override
-
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //this.setSupportActionBar(toolbar);
         ButterKnife.bind(this);
         prefUtils=new PrefUtils(this);
         FirebaseDatabase database=FirebaseDatabase.getInstance();
         dRef=database.getReference("Users");
         fdb=new FriendDB(this,null,null,1);
+        ActionBar ab=getSupportActionBar();
         if(!prefUtils.isUsernameSet()){
             startActivity(new Intent(this,SignUp.class));
         }
@@ -172,7 +183,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         refreshMarkers();
     }
 
-    @OnClick(R.id.auto)
+    @OnClick(R.id.fab)
+    public void onClickFab(){
+        if(auto.getVisibility()==View.INVISIBLE) {
+            auto.setVisibility(View.VISIBLE);
+            manual.setVisibility(View.VISIBLE);
+        }
+        else{
+            auto.setVisibility(View.INVISIBLE);
+            manual.setVisibility(View.INVISIBLE);
+        }
+    }
+
+   @OnClick(R.id.auto)
     public void onSetCurrentLocation(){
         if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED){
             final Geocoder gc=new Geocoder(this, Locale.getDefault());
@@ -218,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @OnClick(R.id.manual)
+   @OnClick(R.id.manual)
     public void onSetManualLocation(){
         try {
             Intent intent= new PlacePicker.IntentBuilder().build(this);
@@ -273,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         gMap.addMarker(new MarkerOptions()
                                 .position(new LatLng(nuser.getLat(),nuser.getLon()))
                                 .title(users.getKey()));
-                        fdb.addFriend(nuser);
+                        fdb.updateFriend(nuser,users.getKey());
                     }
                 }
             }

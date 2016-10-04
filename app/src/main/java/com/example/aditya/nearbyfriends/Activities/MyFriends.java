@@ -16,8 +16,6 @@ import android.widget.Toast;
 import com.example.aditya.nearbyfriends.Pojos.User;
 import com.example.aditya.nearbyfriends.R;
 import com.example.aditya.nearbyfriends.db.FriendDB;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -33,8 +31,7 @@ import butterknife.OnClick;
 
 public class MyFriends extends AppCompatActivity {
 
-    @BindView(R.id.recyclerView)
-    RecyclerView rv;
+    @BindView(R.id.recyclerView) RecyclerView rv;
     RecyclerView.Adapter radapter;
     private DatabaseReference dRef;
 
@@ -56,7 +53,7 @@ public class MyFriends extends AppCompatActivity {
     public void refresh() {
         ArrayList<User> friends = fdb.getAllFriends();
         Collections.reverse(friends);
-        radapter = new MyFriendsAdapter(friends);
+        radapter = new MyFriendsAdapter(friends,getApplicationContext());
         rv.setAdapter(radapter);
     }
 
@@ -104,6 +101,7 @@ public class MyFriends extends AppCompatActivity {
                 dialog.cancel();
             }
         });
-        builder.show();
+        AlertDialog ad=builder.create();
+        ad.show();
     }
 }

@@ -80,6 +80,21 @@ public class FriendDB extends SQLiteOpenHelper{
         return true;
     }
 
+    public boolean updateFriend(User user,String name){
+        ContentValues values=new ContentValues();
+        values.put(COL_2, user.getName());
+        values.put(COL_3, Double.toString(user.getLat()));
+        values.put(COL_4, Double.toString(user.getLon()));
+        values.put(COL_5,user.getAddress());
+        values.put(COL_6,user.getCity());
+        int er=(int)getWritableDatabase().update(TABLE,values,COL_2+"=?",new String[]{name});
+
+        if(er==-1){
+            return false;
+        }
+        return true;
+    }
+
 
     public ArrayList<User> getAllFriends(){
         ArrayList<User> friends=new ArrayList<>();
