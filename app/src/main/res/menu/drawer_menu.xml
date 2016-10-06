@@ -21,6 +21,15 @@
                 android:id="@+id/settings"
                 android:icon="@drawable/ic_settings_black_18dp"
                 android:title="Settings"/>
+            <item
+                android:id="@+id/terms"
+                android:icon="@drawable/terms"
+                android:title="Terms And Conditions"
+                />
+            <item
+                android:id="@+id/privacy"
+                android:icon="@drawable/privacy"
+                android:title="Privacy Policy"/>
         </menu>
     </item>
 </menu>

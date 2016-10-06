@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/empty"
+        android:icon="@drawable/overflow"
+        android:orderInCategory="101"
+        android:title="Menu"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:icon="@drawable/help"
+                android:title="Help"
+                android:id="@+id/help"
+                app:showAsAction="never"/>
+            <item
+                android:id="@+id/settings"
+                android:icon="@drawable/ic_settings_black_18dp"
+                android:title="Settings"
+                app:showAsAction="never"
+                />
+            <item
+                android:icon="@drawable/exit"
+                app:showAsAction="never"
+                android:id="@+id/exit"
+                android:title="Exit"
+                />
+
+        </menu>
+    </item>
+    <item
+        android:icon="@drawable/refresh"
+        android:title="Refresh"
+        android:id="@+id/refresh"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/find"
+        android:icon="@drawable/ic_search_black_18dp"
+        android:title="Search Friend"
+        app:showAsAction="always"/>
+
+</menu>

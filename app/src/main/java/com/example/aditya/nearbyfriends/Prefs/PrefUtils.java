@@ -15,6 +15,9 @@ public class PrefUtils {
     private String username;
     private final String USER_SET="LoggedIn";
     private final String USERNAME="username";
+    private final String FIRST_TIME="first";
+    private final String LAST_LAT="lat";
+    private final String LAST_LON="lon";
     public PrefUtils(Context context){
         sharedPreferences=context.getSharedPreferences("pref",MODE_PRIVATE);
         edit=sharedPreferences.edit();
@@ -30,7 +33,33 @@ public class PrefUtils {
         edit.commit();
     }
 
+    public Double getLastLat() {
+        return Double.parseDouble(sharedPreferences.getString(LAST_LAT,"18.5308225"));
+    }
+
+    public Double getLastLon() {
+        return Double.parseDouble(sharedPreferences.getString(LAST_LON,"73.8474647"));
+    }
+
+    public void setNewLat(Double d){
+        edit.putString(LAST_LAT,d.toString());
+        edit.commit();
+    }
+    public void setNewLon(Double d){
+        edit.putString(LAST_LON,d.toString());
+        edit.commit();
+    }
+
     public boolean isUsernameSet(){
         return sharedPreferences.getBoolean(USER_SET,false);
+    }
+
+    public boolean isFirstTime(){
+        return sharedPreferences.getBoolean(FIRST_TIME,true);
+    }
+
+    public void firstTimeDone(){
+        edit.putBoolean(FIRST_TIME,false);
+        edit.commit();
     }
 }

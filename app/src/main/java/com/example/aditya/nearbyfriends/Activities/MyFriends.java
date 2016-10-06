@@ -3,6 +3,7 @@ package com.example.aditya.nearbyfriends.Activities;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -42,6 +43,8 @@ public class MyFriends extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_friends);
         ButterKnife.bind(this);
+        ActionBar ab=getSupportActionBar();
+        ab.setDisplayHomeAsUpEnabled(true);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         dRef = database.getReference("Users");
         fdb = new FriendDB(getApplicationContext(), null, null, 1);

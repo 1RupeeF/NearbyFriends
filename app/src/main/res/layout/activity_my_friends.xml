@@ -22,7 +22,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
         android:id="@+id/fab"
-        android:src="@android:drawable/ic_input_add"
+        android:src="@drawable/sing_account_plus"
         android:layout_gravity="bottom"
+        app:backgroundTint="@android:color/holo_green_dark"
         />
 </android.support.design.widget.CoordinatorLayout>
