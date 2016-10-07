@@ -2,19 +2,18 @@ package com.example.aditya.nearbyfriends.Activities;
 
 import android.content.DialogInterface;
 import android.graphics.Color;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.aditya.nearbyfriends.Pojos.User;
+import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
 import com.example.aditya.nearbyfriends.R;
 import com.example.aditya.nearbyfriends.db.FriendDB;
 import com.google.firebase.database.DataSnapshot;
@@ -35,6 +34,7 @@ public class MyFriends extends AppCompatActivity {
     @BindView(R.id.recyclerView) RecyclerView rv;
     RecyclerView.Adapter radapter;
     private DatabaseReference dRef;
+    private PrefUtils prefUtils;
 
     FriendDB fdb;
 
@@ -49,6 +49,7 @@ public class MyFriends extends AppCompatActivity {
         dRef = database.getReference("Users");
         fdb = new FriendDB(getApplicationContext(), null, null, 1);
         rv.setHasFixedSize(true);
+        prefUtils=new PrefUtils(this);
         rv.setLayoutManager(new LinearLayoutManager(this));
         refresh();
     }
@@ -77,19 +78,20 @@ public class MyFriends extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         boolean found = false;
                         String nam=name.getText().toString();
-                        for (DataSnapshot users : dataSnapshot.getChildren()) {
-                            if (users.getKey().equals(nam)) {
-                                found = true;
-                                User u=users.getValue(User.class);
-                                u.setName(nam);
-                                fdb.addFriend(u);
-                                break;
+                        if(!nam.equals(prefUtils.getUsername())) {
+                            for (DataSnapshot users : dataSnapshot.getChildren()) {
+                                if (users.getKey().equals(nam)) {
+                                    found = true;
+                                    User u = users.getValue(User.class);
+                                    u.setName(nam);
+                                    fdb.addFriend(u);
+                                    break;
+                                }
                             }
+                            if (!found) {
+                                Toast.makeText(getApplicationContext(), "Not such User", Toast.LENGTH_SHORT).show();
+                            } else refresh();
                         }
-                        if (!found) {
-                            Toast.makeText(getApplicationContext(), "Not such User", Toast.LENGTH_SHORT).show();
-                        }
-                        else refresh();
                     }
 
                     @Override

@@ -38,5 +38,10 @@
         android:icon="@drawable/ic_search_black_18dp"
         android:title="Search Friend"
         app:showAsAction="always"/>
+    <item
+        android:id="@+id/notifications"
+        android:title="@string/notifications"
+        app:showAsAction="always"
+        />
 
 </menu>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+        <PreferenceScreen
+            android:icon="@drawable/ic_notifications_black_24dp"
+            android:title="Notifications Settings"
+            android:persistent="false">
+                <CheckBoxPreference
+                    android:key="@string/pref_show_notifications_key"
+                    android:summary="Do you want notification from this App"
+                    android:defaultValue="true"
+                    android:title="Show Notifications"/>
+                <EditTextPreference
+                    android:defaultValue="@string/pref_dist_default"
+                    android:title="Minimum Distance"
+                    android:inputType="number"
+                    android:singleLine="true"
+                    android:key="@string/pref_dist_key"
+                    android:summary="Minimum distance between you and your friend to show notifications."
+                    android:dialogTitle="Minimum Distance (in meters)"
+                    android:hint="Distance (in meters)"
+                    />
+        </PreferenceScreen>
+</PreferenceScreen>

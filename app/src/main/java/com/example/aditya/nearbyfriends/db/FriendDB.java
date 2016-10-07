@@ -148,5 +148,17 @@ public class FriendDB extends SQLiteOpenHelper{
         }
     }
 
+    public int getFriendId(String name){
+        Cursor cursor=getWritableDatabase().query(TABLE,
+                new String[]{COL_1},COL_2+"=?",new String[]{name},null,null,null);
+        cursor.moveToFirst();
+        if(!cursor.isAfterLast()) {
+            return cursor.getInt(0);
+        }
+        else {
+            return -1;
+        }
+    }
+
 
 }

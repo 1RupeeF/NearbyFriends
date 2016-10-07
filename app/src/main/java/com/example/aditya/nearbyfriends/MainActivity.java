@@ -1,8 +1,13 @@
 package com.example.aditya.nearbyfriends;
 import android.Manifest;
+import android.app.AlarmManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -11,6 +16,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -23,6 +29,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -39,7 +46,9 @@ import com.example.aditya.nearbyfriends.Activities.MyFriends;
 import com.example.aditya.nearbyfriends.Activities.SignUp;
 import com.example.aditya.nearbyfriends.Pojos.User;
 import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
+import com.example.aditya.nearbyfriends.Prefs.SettingsActivity;
 import com.example.aditya.nearbyfriends.db.FriendDB;
+import com.example.aditya.nearbyfriends.services.LocationUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -59,6 +68,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.maps.android.SphericalUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -97,15 +107,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final String TAGmap="rxmap";
     private PrefUtils prefUtils;
     private Observable<Location> observableLocation;
+    private SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         toolbar = getSupportActionBar();
         ButterKnife.bind(this);
         prefUtils = new PrefUtils(this);
+        sp= PreferenceManager.getDefaultSharedPreferences(this);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         dRef = database.getReference("Users");
         fdb = new FriendDB(this, null, null, 1);
@@ -118,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             }
         });
+        ((TextView) navigationView.getHeaderView(0).findViewById(R.id.username)).setText(prefUtils.getUsername());
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if(googleApiClient==null){
             googleApiClient=new GoogleApiClient.Builder(this)
@@ -126,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .addApi(LocationServices.API)
                     .build();
         }
-
         observableLocation=Observable.fromCallable(new Callable<Location>() {
             @Override
             public Location call() throws Exception{
@@ -141,6 +152,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
+
+        AlarmManager alarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, LocationUpdateService.AlarmReciever.class);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                0, 60000, alarmIntent);
     }
 
     @Override
@@ -173,7 +190,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             gMap.setMyLocationEnabled(true);
             Log.w(TAGmap,"gMap setmylocationenable done");
         }
-        refreshMarkers();
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -204,6 +220,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     }
                 });
+        updateMarkers();
     }
 
     @OnClick(R.id.fab)
@@ -340,8 +357,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
+    public void updateMarkers(){
+        gMap.clear();
+        ArrayList<User> allFriends=fdb.getAllFriends();
+        for(User user:allFriends){
+            double dist= SphericalUtil.computeDistanceBetween(
+                    new LatLng(prefUtils.getLastLat(),prefUtils.getLastLon()),
+                    new LatLng(user.getLat(),user.getLon()))/1000.0;
 
-    public void refreshMarkers() {
+            gMap.addMarker(new MarkerOptions()
+                    .snippet(String.format("%.2f",dist)+" kms away from you")
+                    .position(new LatLng(user.getLat(), user.getLon()))
+                    .title(user.getName()));
+        }
+    }
+
+    public void refreshFriendsLocation() {
         if(isInternetAvailable()) {
             final ArrayList<String> fnames=fdb.getAllFriendsName();
             Observable.create(new Observable.OnSubscribe<User>() {
@@ -383,15 +414,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
         else{
-            Toast.makeText(this,"Connect to Internet for latest location of Friends",Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"Connect to Internet for updating location of Friends",Toast.LENGTH_LONG).show();
         }
-        gMap.clear();
-        ArrayList<User> allFriends=fdb.getAllFriends();
-        for(User user:allFriends){
-            gMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(user.getLat(), user.getLon()))
-                    .title(user.getName()));
-        }
+        updateMarkers();
     }
 
     public void findFriend(){
@@ -427,6 +452,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar_menu, menu);
+        MenuItem not= menu.findItem(R.id.notifications);
+        if(sp.getBoolean(getString(R.string.pref_show_notifications_key),true)){
+            not.setIcon(R.drawable.noton);
+        }
+        else {
+            not.setIcon(R.drawable.notoff);
+        }
         return true;
     }
 
@@ -434,19 +466,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.settings:
+                startActivity(new Intent(this, SettingsActivity.class));
                 break;
             case R.id.refresh:
-                refreshMarkers();
+                refreshFriendsLocation();
                 break;
             case R.id.find:
                 findFriend();
                 break;
             case R.id.exit:
-                this.finish();
-                moveTaskToBack(true);
+                /*this.finish();
+                moveTaskToBack(true);*/
                 break;
             case R.id.help:
                 break;
+            case R.id.notifications:
+                if(sp.getBoolean(getString(R.string.pref_show_notifications_key),true)){
+                    item.setIcon(R.drawable.notoff);
+                    sp.edit().putBoolean(getString(R.string.pref_show_notifications_key),false).commit();
+                }
+                else {
+                    item.setIcon(R.drawable.noton);
+                    sp.edit().putBoolean(getString(R.string.pref_show_notifications_key),true).commit();
+                }
         }
         return true;
     }
@@ -463,6 +505,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case R.id.addFriends:
                 startActivity(new Intent(getApplicationContext(), MyFriends.class));
+                break;
+            case R.id.settings:
+                startActivity(new Intent(this, SettingsActivity.class));
                 break;
             case R.id.search:
                 mainLayout.closeDrawer(Gravity.LEFT);
