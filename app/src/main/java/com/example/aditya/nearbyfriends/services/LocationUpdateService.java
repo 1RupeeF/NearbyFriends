@@ -3,18 +3,23 @@ package com.example.aditya.nearbyfriends.services;
 
 import android.app.IntentService;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntegerRes;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
+import com.example.aditya.nearbyfriends.MainActivity;
 import com.example.aditya.nearbyfriends.Pojos.User;
 import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
 import com.example.aditya.nearbyfriends.R;
@@ -52,10 +57,9 @@ public class LocationUpdateService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         prefUtils=new PrefUtils(getApplicationContext());
         SharedPreferences sp=PreferenceManager.getDefaultSharedPreferences(this);
-        final Boolean shownoti= sp.getBoolean(getString(R.string.pref_show_notifications_key),true);
-        final int mindist= Integer.parseInt(sp.getString(
-                getString(R.string.pref_dist_key),getString(R.string.pref_dist_default))
-        );
+        final boolean shownoti= sp.getBoolean(getString(R.string.pref_show_notifications_key),true);
+        final int mindist= Integer.parseInt(sp.getString(getString(R.string.pref_dist_key),getString(R.string.pref_dist_default)));
+        final boolean notsound=sp.getBoolean(getString(R.string.pref_notification_sound),true);
         if(isInternetAvailable()) {
             final ArrayList<String> fnames = fdb.getAllFriendsName();
             dRef.addValueEventListener(new ValueEventListener() {
@@ -76,9 +80,22 @@ public class LocationUpdateService extends IntentService {
                                     NotificationCompat.Builder notification = new NotificationCompat.Builder(getApplicationContext());
                                     notification.setContentText(user.getName() + " is " + String.format("%.3f", dist) + " meters away");
                                     notification.setSmallIcon(R.drawable.app_icon);
-                                    notification.setStyle(new NotificationCompat.InboxStyle());
-                                    //notification.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+                                    //notification.setStyle(new NotificationCompat.InboxStyle());
+                                    if(notsound)
+                                        notification.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
                                     notification.setContentTitle(user.getName() + " is near you.");
+                                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                                            Uri.parse("http://maps.google.com/maps?saddr="+prefUtils.getLastLat()+","+prefUtils.getLastLon()+
+                                                    "&daddr="+user.getLat()+","+user.getLon()));
+                                    TaskStackBuilder stackBuilder=TaskStackBuilder.create(getApplicationContext());
+                                    stackBuilder.addNextIntent(new Intent(getApplicationContext(),MainActivity.class)
+                                            .putExtra("serviceFname",user.getName()));
+                                    stackBuilder.addParentStack(MainActivity.class);
+                                    PendingIntent pi2=stackBuilder.getPendingIntent(0,PendingIntent.FLAG_UPDATE_CURRENT);
+                                    notification.setContentIntent(pi2);
+                                    PendingIntent pi=PendingIntent.getActivity(getApplicationContext(),0,intent,0);
+                                    notification.addAction(R.drawable.ic_navigation_black_24dp,"Navigation",pi);
+                                    notification.addAction(R.drawable.open_app,"Open App",pi2);
                                     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                                     notificationManager.notify(fdb.getFriendId(user.getName()), notification.build());
                                 }

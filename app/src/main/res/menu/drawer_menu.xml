@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group>
+    <group >
         <item
             android:id="@+id/SignIn"
             android:icon="@drawable/ic_account_circle_black_18dp"
-            android:title="SignIn" />
+            android:title="SignIn"
+            />
         <item
             android:id="@+id/addFriends"
             android:icon="@drawable/account_plus"
             android:title="Add Friends"/>
+        <item
+            android:id="@+id/trackList"
+            android:icon="@drawable/track_list"
+            android:title="Tracking List"/>
         <item
             android:id="@+id/search"
             android:title="Search Friend"

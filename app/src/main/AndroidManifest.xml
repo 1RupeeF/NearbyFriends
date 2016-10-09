@@ -31,7 +31,6 @@
         <service android:name=".services.LocationUpdateService" />
 
         <receiver android:name=".services.LocationUpdateService$AlarmReciever" />
-
         <activity
             android:name=".Prefs.SettingsActivity"
             android:label="@string/title_activity_settings"

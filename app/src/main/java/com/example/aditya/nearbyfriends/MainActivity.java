@@ -1,9 +1,7 @@
 package com.example.aditya.nearbyfriends;
 import android.Manifest;
 import android.app.AlarmManager;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,7 +27,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -37,7 +34,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -74,6 +72,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 import butterknife.BindView;
@@ -82,6 +81,7 @@ import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -108,6 +108,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private PrefUtils prefUtils;
     private Observable<Location> observableLocation;
     private SharedPreferences sp;
+    private Intent notificationIntent;
+    private int[] nav_bgs=new int[]{R.drawable.nav_bg_1,R.drawable.nav_bg_2,R.drawable.nav_bg_3,R.drawable.nav_bg_4,
+            R.drawable.nav_bg_5,R.drawable.nav_bg_6,R.drawable.nav_bg_7,R.drawable.nav_bg_8,R.drawable.nav_bg_9,
+            R.drawable.nav_bg_10,R.drawable.nav_bg_11,R.drawable.nav_bg_12,R.drawable.nav_bg_13,R.drawable.nav_bg_14,
+            R.drawable.nav_bg_15,R.drawable.nav_bg_16,R.drawable.nav_bg_17,R.drawable.nav_bg_18,R.drawable.nav_bg_19,
+            R.drawable.nav_bg_20,R.drawable.nav_bg_21};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fdb = new FriendDB(this, null, null, 1);
         SupportMapFragment smf = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
         smf.getMapAsync(this);
+        notificationIntent=getIntent();
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -130,6 +137,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         ((TextView) navigationView.getHeaderView(0).findViewById(R.id.username)).setText(prefUtils.getUsername());
+        ((LinearLayout)navigationView.getHeaderView(0).findViewById(R.id.nav_header)).
+                setBackground(getResources().getDrawable(nav_bgs[new Random().nextInt(21)]));
+        navigationView.getHeaderView(0).findViewById(R.id.changebg).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                (navigationView.getHeaderView(0).findViewById(R.id.nav_header)).
+                setBackground(getResources().getDrawable(nav_bgs[new Random().nextInt(21)]));
+            }
+        });
+
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if(googleApiClient==null){
             googleApiClient=new GoogleApiClient.Builder(this)
@@ -151,13 +168,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 }
             }
-        });
+        }).subscribeOn(Schedulers.io());
 
         AlarmManager alarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, LocationUpdateService.AlarmReciever.class);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                0, 60000, alarmIntent);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        alarmMgr.set(AlarmManager.RTC_WAKEUP,
+                0, alarmIntent);
+
     }
 
     @Override
@@ -200,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        observableLocation.subscribeOn(Schedulers.io())
+        observableLocation
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Location>() {
                     @Override
@@ -208,9 +226,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         if (location == null) {
                             Log.w(TAGmap,"location == null");
                             updateCamera(prefUtils.getLastLat(),prefUtils.getLastLon());
-                            /*Toast er=Toast.makeText(getApplicationContext(),"Unable to get current Location!!",Toast.LENGTH_SHORT);
-                            er.setGravity(Gravity.CENTER,0,0);
-                            er.show();*/
                         }
                         else {
                             Log.w(TAGmap,"location != null");
@@ -221,6 +236,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 });
         updateMarkers();
+        String fname=notificationIntent.getStringExtra("LessDistName");
+        if(fname!=null){
+            User friend=fdb.getFriend(fname);
+            updateCamera(friend.getLat(),friend.getLon());
+        }
     }
 
     @OnClick(R.id.fab)
@@ -237,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @OnClick(R.id.auto)
     public void onSetCurrentLocation() {
         final boolean internet=isInternetAvailable();
-        observableLocation.subscribeOn(Schedulers.io())
+        observableLocation
                 .observeOn(Schedulers.newThread())
                 .subscribe(new Observer<Location>() {
                     @Override public void onCompleted() {}
@@ -422,10 +442,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void findFriend(){
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Search Friend");
-        final EditText friend = new EditText(getApplicationContext());
+        final AutoCompleteTextView friend = new AutoCompleteTextView(getApplicationContext());
         friend.setHint("Friend's Username");
-        friend.setTextColor(Color.BLACK);
-        friend.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG_RTL);
+        friend.setDropDownBackgroundResource(android.R.color.white);
+        friend.setTextColor(Color.LTGRAY);
+        friend.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_expandable_list_item_1,fdb.getAllFriendsName()));
+        friend.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG_LTR);
         builder.setView(friend);
         builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
             @Override
@@ -446,6 +468,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         builder.create().show();
+
     }
 
     @Override
@@ -468,8 +491,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 break;
-            case R.id.refresh:
+            case R.id.refresh: {
+                Toast toast = Toast.makeText(this, "Markers Updated", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
                 refreshFriendsLocation();
+                }
                 break;
             case R.id.find:
                 findFriend();
@@ -484,10 +511,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if(sp.getBoolean(getString(R.string.pref_show_notifications_key),true)){
                     item.setIcon(R.drawable.notoff);
                     sp.edit().putBoolean(getString(R.string.pref_show_notifications_key),false).commit();
+                    Toast toast=Toast.makeText(this,"Notifications are turned OFF",Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.CENTER,0,0);toast.show();
                 }
                 else {
                     item.setIcon(R.drawable.noton);
                     sp.edit().putBoolean(getString(R.string.pref_show_notifications_key),true).commit();
+                    Toast toast=Toast.makeText(this,"Notifications are turned ON",Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.CENTER,0,0);toast.show();
                 }
         }
         return true;
@@ -595,4 +626,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override public void onConnected(@Nullable Bundle bundle) {}
     @Override public void onConnectionSuspended(int i) { }
     @Override public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
+
+    @Override
+    protected void onPause() {
+        int millisec=Integer.parseInt(sp.getString(getString(R.string.pref_update_min_key),
+                getString(R.string.pref_update_min_default)))*60*1000;
+        AlarmManager alarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, LocationUpdateService.AlarmReciever.class);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                millisec, millisec, alarmIntent);
+        super.onPause();
+    }
 }

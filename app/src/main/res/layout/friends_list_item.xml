@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         card_view:cardCornerRadius="10dp"
-        card_view:cardBackgroundColor="@android:color/holo_blue_light"
+        card_view:cardBackgroundColor="@color/colorAccent"
         card_view:cardElevation="10dp">
 
     <LinearLayout
@@ -21,6 +21,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="#4689b3"
                 android:src="@drawable/ic_android_black_48dp"/>
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -35,15 +36,40 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="20dp"
-                    android:text="name"/>
+                    android:layout_marginBottom="1dp"
+                    android:textColor="@color/colorAccent"
+                    android:text="name"
+                    android:background="#4689b3" />
                 <TextView
                     android:layout_width="match_parent"
+                    android:textColor="@color/colorAccent"
                     android:layout_height="wrap_content"
                     android:id="@+id/address"
                     android:layout_weight="1"
                     android:text="address"
                     android:textSize="10dp"
-                    android:gravity="center"/>
+                    android:gravity="center"
+                    android:background="#4689b3"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="#4689b3">
+                <Switch
+                    android:layout_marginTop="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/addtotracklist"
+                    android:layout_gravity="center"/>
+                <ImageButton
+                    android:layout_gravity="center|bottom"
+                    android:background="#4689b3"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/delete"
+                    android:id="@+id/remove"/>
+
             </LinearLayout>
         </LinearLayout>
 

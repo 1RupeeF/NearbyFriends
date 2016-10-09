@@ -23,6 +23,7 @@ public class FriendDB extends SQLiteOpenHelper{
     private static final String COL_4="lon";
     private static final String COL_5="address";
     private static final String COL_6="city";
+    private static final String COL_7="track";
     private static final int DB_VERSION=1;
     private static final String DB_NAME="NearbyFriends";
     private static final String TABLE="Friends";
@@ -45,7 +46,8 @@ public class FriendDB extends SQLiteOpenHelper{
                 COL_3 + " TEXT, " +
                 COL_4 + " TEXT, " +
                 COL_5 + " TEXT, " +
-                COL_6 + " VARCHAR(50));"
+                COL_6 + " VARCHAR(50), " +
+                COL_7 + " BOOL );"
         );
     }
 
@@ -158,6 +160,31 @@ public class FriendDB extends SQLiteOpenHelper{
         else {
             return -1;
         }
+    }
+
+    public boolean addToTrackList(String name,boolean status){
+        int er;
+        if(status){
+            ContentValues values=new ContentValues();
+            values.put(COL_7,Boolean.TRUE);
+            er=(int)getWritableDatabase().update(TABLE,values,COL_2+"=?",new String[]{name});
+        }else{
+            ContentValues values=new ContentValues();
+            values.put(COL_7,Boolean.FALSE);
+            er=(int)getWritableDatabase().update(TABLE,values,COL_2+"=?",new String[]{name});
+        }
+        if(er==-1){
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isInTrackerList(String name){
+        Cursor cursor=getWritableDatabase().query(TABLE,
+                new String[]{COL_7},COL_2+"=?",new String[]{name},null,null,null);
+        cursor.moveToFirst();
+        Boolean b=cursor.getInt(0) > 0;
+        return b;
     }
 
 

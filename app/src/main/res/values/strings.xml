@@ -12,5 +12,12 @@
     <string name="title_activity_settings">Settings</string>
     <string name="notifications">Notifications</string>
 
+    <string name="pref_notification_sound" translatable="false">notificationsound</string>
+
+    <string name="pref_update_min_default">5</string>
+    <string name="pref_update_min_key">timeinterval</string>
+
+
+    <string name="pref_use_track_list_key">track_list</string>
 
 </resources>

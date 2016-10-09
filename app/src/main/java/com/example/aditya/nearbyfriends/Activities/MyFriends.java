@@ -2,6 +2,7 @@ package com.example.aditya.nearbyfriends.Activities;
 
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -29,9 +30,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MyFriends extends AppCompatActivity {
+public class MyFriends extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener{
 
     @BindView(R.id.recyclerView) RecyclerView rv;
+    @BindView(R.id.activity_my_friends) SwipeRefreshLayout swipeToRefresh;
     RecyclerView.Adapter radapter;
     private DatabaseReference dRef;
     private PrefUtils prefUtils;
@@ -50,15 +52,26 @@ public class MyFriends extends AppCompatActivity {
         fdb = new FriendDB(getApplicationContext(), null, null, 1);
         rv.setHasFixedSize(true);
         prefUtils=new PrefUtils(this);
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         rv.setLayoutManager(new LinearLayoutManager(this));
+        refresh();
+        swipeToRefresh.setOnRefreshListener(this);
+        swipeToRefresh.setColorSchemeColors(Color.BLUE);
+        swipeToRefresh.setProgressBackgroundColorSchemeColor(Color.DKGRAY);
+    }
+
+    @Override
+    public void onRefresh() {
         refresh();
     }
 
-    public void refresh() {
+    public void refresh(){
+        swipeToRefresh.setRefreshing(true);
         ArrayList<User> friends = fdb.getAllFriends();
         Collections.reverse(friends);
         radapter = new MyFriendsAdapter(friends,getApplicationContext());
         rv.setAdapter(radapter);
+        swipeToRefresh.setRefreshing(false);
     }
 
     @OnClick(R.id.fab)

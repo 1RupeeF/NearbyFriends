@@ -3,21 +3,48 @@
         <PreferenceScreen
             android:icon="@drawable/ic_notifications_black_24dp"
             android:title="Notifications Settings"
+            android:summary="Manage notification sound, minimum distance etc."
             android:persistent="false">
-                <CheckBoxPreference
+                <SwitchPreference
                     android:key="@string/pref_show_notifications_key"
                     android:summary="Do you want notification from this App"
                     android:defaultValue="true"
+                    android:icon="@drawable/ic_notifications_black_24dp"
                     android:title="Show Notifications"/>
                 <EditTextPreference
                     android:defaultValue="@string/pref_dist_default"
                     android:title="Minimum Distance"
                     android:inputType="number"
                     android:singleLine="true"
+                    android:icon="@drawable/min_dist"
                     android:key="@string/pref_dist_key"
                     android:summary="Minimum distance between you and your friend to show notifications."
                     android:dialogTitle="Minimum Distance (in meters)"
                     android:hint="Distance (in meters)"
                     />
+                <SwitchPreference
+                        android:key="@string/pref_notification_sound"
+                        android:summary="Do you want notification sound"
+                        android:defaultValue="true"
+                        android:icon="@drawable/sound"
+                        android:title="Notification Sound"/>
+                <SwitchPreference
+                    android:key="@string/pref_use_track_list_key"
+                    android:icon="@drawable/track_list"
+                    android:summary="Notification will only be shown if friends are in tracking list"
+                    android:defaultValue="false"
+                    android:title="Use tracking list"/>
+
         </PreferenceScreen>
+        <EditTextPreference
+            android:defaultValue="@string/pref_update_min_default"
+            android:title="Update Time Interval"
+            android:inputType="number"
+            android:singleLine="true"
+            android:icon="@drawable/alarm_check"
+            android:key="@string/pref_update_min_key"
+            android:summary="Time Interval after which locations of friend gets updated."
+            android:dialogTitle="Time Interval"
+            android:hint="Time Interval(in meters)"
+            />
 </PreferenceScreen>
