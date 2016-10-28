@@ -32,6 +32,7 @@ public class Welcome extends AppCompatActivity implements ActivityCompat.OnReque
         setContentView(R.layout.activity_welcome);
         prefUtils=new PrefUtils(getApplicationContext());
         ButterKnife.bind(this);
+        if(!prefUtils.isFirstTime()){ startActivity(new Intent(this, MainActivity.class)); }
         appname.setText("Welcome\n to \nFriends Nearby");
         appname.setTypeface(Typeface.createFromAsset(getAssets(),"fonts/birdmanbold.ttf"));
         title.setTypeface(Typeface.createFromAsset(getAssets(),"fonts/birdmanbold.ttf"));

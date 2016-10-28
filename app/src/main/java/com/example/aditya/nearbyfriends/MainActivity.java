@@ -199,13 +199,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 toolbar.setHomeAsUpIndicator(R.drawable.drawer_open);
                 super.onDrawerClosed(drawerView);
             }
-
             @Override
             public void onDrawerOpened(View drawerView) {
                 toolbar.setHomeAsUpIndicator(R.drawable.drawer_close);
                 super.onDrawerOpened(drawerView);
             }
-
         };
         registerForContextMenu(mapView);
         mapView.setAlpha(.7f);
