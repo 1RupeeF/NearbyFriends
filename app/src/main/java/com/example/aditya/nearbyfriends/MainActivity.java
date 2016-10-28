@@ -8,12 +8,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -22,12 +22,15 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,15 +39,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.aditya.nearbyfriends.Activities.FriendRequests;
 import com.example.aditya.nearbyfriends.Activities.MyFriends;
 import com.example.aditya.nearbyfriends.Activities.SignUp;
+import com.example.aditya.nearbyfriends.Activities.Welcome;
 import com.example.aditya.nearbyfriends.Pojos.User;
 import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
 import com.example.aditya.nearbyfriends.Prefs.SettingsActivity;
+import com.example.aditya.nearbyfriends.db.DataFetcher;
 import com.example.aditya.nearbyfriends.db.FriendDB;
 import com.example.aditya.nearbyfriends.services.LocationUpdateService;
 import com.google.android.gms.common.ConnectionResult;
@@ -58,20 +65,13 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.maps.android.SphericalUtil;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
@@ -79,42 +79,34 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener{
+        GoogleApiClient.OnConnectionFailedListener {
 
-    private DatabaseReference dRef;
+    DataFetcher dataFetcher;
     private FriendDB fdb;
     @BindView(R.id.activity_main) DrawerLayout mainLayout;
     @BindView(R.id.navView) NavigationView navigationView;
     @BindView(R.id.auto) FloatingActionButton auto;
+    @BindView(R.id.mapType) Button mapView;
     @BindView(R.id.manual) FloatingActionButton manual;
+    private TextView reqcount;
     private GoogleMap gMap;
     private GoogleApiClient googleApiClient;
     private ActionBar toolbar;
     private int PLACE_PICKER_REQUEST_CODE = 123;
     private LocationManager lm;
+    private ActionBarDrawerToggle toogle;
     private final String TAG = "mainTag";
     private final String TAGcurrent="rxsetCurrent";
     private final String TAGmap="rxmap";
     private PrefUtils prefUtils;
     private Observable<Location> observableLocation;
     private SharedPreferences sp;
-    private Intent notificationIntent;
-    private int[] nav_bgs=new int[]{R.drawable.nav_bg_1,R.drawable.nav_bg_2,R.drawable.nav_bg_3,R.drawable.nav_bg_4,
-            R.drawable.nav_bg_5,R.drawable.nav_bg_6,R.drawable.nav_bg_7,R.drawable.nav_bg_8,R.drawable.nav_bg_9,
-            R.drawable.nav_bg_10,R.drawable.nav_bg_11,R.drawable.nav_bg_12,R.drawable.nav_bg_13,R.drawable.nav_bg_14,
-            R.drawable.nav_bg_15,R.drawable.nav_bg_16,R.drawable.nav_bg_17,R.drawable.nav_bg_18,R.drawable.nav_bg_19,
-            R.drawable.nav_bg_20,R.drawable.nav_bg_21};
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,13 +114,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         toolbar = getSupportActionBar();
         ButterKnife.bind(this);
         prefUtils = new PrefUtils(this);
-        sp= PreferenceManager.getDefaultSharedPreferences(this);
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        dRef = database.getReference("Users");
+        if (prefUtils.isFirstTime()) {
+            startActivity(new Intent(this, Welcome.class));
+        }
+        sp = PreferenceManager.getDefaultSharedPreferences(this);
         fdb = new FriendDB(this, null, null, 1);
         SupportMapFragment smf = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
         smf.getMapAsync(this);
-        notificationIntent=getIntent();
+        dataFetcher = DataFetcher.getInstance();
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -136,47 +129,100 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             }
         });
-        ((TextView) navigationView.getHeaderView(0).findViewById(R.id.username)).setText(prefUtils.getUsername());
-        ((LinearLayout)navigationView.getHeaderView(0).findViewById(R.id.nav_header)).
-                setBackground(getResources().getDrawable(nav_bgs[new Random().nextInt(21)]));
-        navigationView.getHeaderView(0).findViewById(R.id.changebg).setOnClickListener(new View.OnClickListener() {
+        if (prefUtils.isUsernameSet()) {
+            ((TextView) navigationView.getHeaderView(0).findViewById(R.id.username))
+                    .setText(prefUtils.getUsername() + " \n( "+ prefUtils.getUID()+" )" );
+            ((TextView) navigationView.getHeaderView(0).findViewById(R.id.email))
+                    .setText(prefUtils.getEMAIL());
+        } else {
+            ((TextView) navigationView.getHeaderView(0).findViewById(R.id.email))
+                    .setText("You Are Not Signed In");
+            ((TextView) navigationView.getHeaderView(0).findViewById(R.id.username))
+                    .setText("Welcome");
+        }
+
+        navigationView.getHeaderView(0).findViewById(R.id.nav_header).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                (navigationView.getHeaderView(0).findViewById(R.id.nav_header)).
-                setBackground(getResources().getDrawable(nav_bgs[new Random().nextInt(21)]));
+                navigationView.getHeaderView(0).findViewById(R.id.appName).setVisibility(View.VISIBLE);
+                ((TextView)navigationView.getHeaderView(0).findViewById(R.id.appName))
+                        .setTypeface(Typeface.createFromAsset(getAssets(),"fonts/birdmanbold.ttf"));
+                navigationView.getHeaderView(0).findViewById(R.id.username).setVisibility(View.INVISIBLE);
+                navigationView.getHeaderView(0).findViewById(R.id.email).setVisibility(View.INVISIBLE);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        navigationView.getHeaderView(0).findViewById(R.id.appName).setVisibility(View.GONE);
+                        navigationView.getHeaderView(0).findViewById(R.id.username).setVisibility(View.VISIBLE);
+                        navigationView.getHeaderView(0).findViewById(R.id.email).setVisibility(View.VISIBLE);
+                    }
+                },1000);
             }
         });
 
-        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if(googleApiClient==null){
-            googleApiClient=new GoogleApiClient.Builder(this)
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED) {
+            lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            if(!lm.isProviderEnabled(LocationManager.GPS_PROVIDER))
+                turnOnGps();
+        }
+        if (googleApiClient == null) {
+            googleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
         }
-        observableLocation=Observable.fromCallable(new Callable<Location>() {
+
+        observableLocation = Observable.fromCallable(new Callable<Location>() {
             @Override
-            public Location call() throws Exception{
+            public Location call() throws Exception {
+                Location loc = null;
                 if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                         && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED) {
-                    Log.w(TAG,"location: api_client");
-                    return LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+                    Log.w(TAG, "location: api_client");
+                    loc = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+                    if (loc == null) {
+                        Log.w(TAG, "location: network_provider");
+                        loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    }
                 }
-                else {
-                    Log.w(TAG,"location: network_provider");
-                    return lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                }
+                return loc;
             }
-        }).subscribeOn(Schedulers.io());
+        }).subscribeOn(Schedulers.newThread());
 
-        AlarmManager alarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, LocationUpdateService.AlarmReciever.class);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-        alarmMgr.set(AlarmManager.RTC_WAKEUP,
-                0, alarmIntent);
+        toolbar.setDisplayHomeAsUpEnabled(true);
+        toogle = new ActionBarDrawerToggle(this, mainLayout,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                toolbar.setHomeAsUpIndicator(R.drawable.drawer_open);
+                super.onDrawerClosed(drawerView);
+            }
 
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                toolbar.setHomeAsUpIndicator(R.drawable.drawer_close);
+                super.onDrawerOpened(drawerView);
+            }
+
+        };
+        registerForContextMenu(mapView);
+        mapView.setAlpha(.7f);
+        mapView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mapView.performLongClick();
+            }
+        });
+        mainLayout.setDrawerListener(toogle);
+        toogle.syncState();
+        toolbar.setHomeAsUpIndicator(R.drawable.drawer_open);
+        if (prefUtils.isUsernameSet()) {
+            startService(new Intent(this, LocationUpdateService.class));
+        }
     }
+
 
     @Override
     protected void onStart() {
@@ -197,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .bearing(0)
                 .tilt(25)
                 .build();
-        gMap.moveCamera(CameraUpdateFactory.newCameraPosition(Mylocation));
+        gMap.animateCamera(CameraUpdateFactory.newCameraPosition(Mylocation));
     }
 
     @Override
@@ -207,6 +253,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED) {
             gMap.setMyLocationEnabled(true);
             Log.w(TAGmap,"gMap setmylocationenable done");
+            if(prefUtils.getMapType().equals("Satellite"))
+                gMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+            else if(prefUtils.getMapType().equals("Terrain"))
+                gMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+            else if(prefUtils.getMapType().equals("Hybrid"))
+                gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+            else
+                gMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         }
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -218,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        observableLocation
+       observableLocation
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Location>() {
                     @Override
@@ -235,101 +289,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     }
                 });
-        updateMarkers();
-        String fname=notificationIntent.getStringExtra("LessDistName");
-        if(fname!=null){
-            User friend=fdb.getFriend(fname);
-            updateCamera(friend.getLat(),friend.getLon());
-        }
+            refreshFriendsLocation();
+
     }
 
     @OnClick(R.id.fab)
     public void onClickFab() {
-        if (auto.getVisibility() == View.INVISIBLE) {
-            auto.setVisibility(View.VISIBLE);
-            manual.setVisibility(View.VISIBLE);
-        } else {
-            auto.setVisibility(View.INVISIBLE);
-            manual.setVisibility(View.INVISIBLE);
+        if(prefUtils.isUsernameSet()) {
+            if (auto.getVisibility() == View.INVISIBLE) {
+                auto.setVisibility(View.VISIBLE);
+                manual.setVisibility(View.VISIBLE);
+            } else {
+                auto.setVisibility(View.INVISIBLE);
+                manual.setVisibility(View.INVISIBLE);
+            }
+        }
+        else{
+            Snackbar.make(mainLayout,"SignIn before updating your location",Snackbar.LENGTH_LONG)
+                    .setAction("SignIn", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            startActivity(new Intent(MainActivity.this,SignUp.class));
+                        }
+                    })
+                    .setActionTextColor(Color.YELLOW)
+                    .show();
         }
     }
 
     @OnClick(R.id.auto)
     public void onSetCurrentLocation() {
-        final boolean internet=isInternetAvailable();
-        observableLocation
-                .observeOn(Schedulers.newThread())
-                .subscribe(new Observer<Location>() {
-                    @Override public void onCompleted() {}
-                    @Override public void onError(Throwable e) {}
-                    @Override
-                    public void onNext(final Location location) {
-                         if(location==null){
-                             Log.w(TAGcurrent,"location: null");
-                             Snackbar.make(mainLayout, "Failed to get Current Location!! Try Again Later", Snackbar.LENGTH_SHORT)
-                                     .setAction("Pick Manually", new View.OnClickListener() {
-                                         @Override
-                                         public void onClick(View v) {
-                                             onSetManualLocation();
-                                         }
-                                     })
-                                     .setActionTextColor(Color.BLUE)
-                                     .show();
-                         }
-                         else {
-                             Snackbar.make(mainLayout, "Your location is set to current location", Snackbar.LENGTH_SHORT)
-                                     .setAction("Address", new View.OnClickListener() {
-                                         @Override
-                                         public void onClick(View v) {
-                                             if (internet) {
-                                                 try {
-                                                     Geocoder gc = new Geocoder(getApplicationContext(), Locale.getDefault());
-                                                     String address = gc.getFromLocation(location.getLatitude(), location.getLongitude(), 1).get(0).getAddressLine(0);
-                                                     String city = gc.getFromLocation(location.getLatitude(), location.getLongitude(), 1).get(0).getLocality();
-                                                     Snackbar.make(mainLayout, address + ", " + city, Snackbar.LENGTH_SHORT).show();
-                                                     Log.w(TAGcurrent, "Address Displayed");
-                                                 } catch (IOException e) {
-                                                     e.printStackTrace();
-                                                 }
-                                             } else {
-                                                 Snackbar.make(mainLayout,"Connect to Internet to get Address", Snackbar.LENGTH_SHORT).show();
-                                             }
-                                         }
-                                     })
-                             .show();
-                        }
-                        try {
-                             User me = new User();
-                             if(internet) {
-                                 Geocoder gc = new Geocoder(getApplicationContext(), Locale.getDefault());
-                                 List<Address> add = gc.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                                 me.setAddress(add.get(0).getAddressLine(0));
-                                 me.setCity(add.get(0).getLocality());
-                             }
-                             else{
-                                 me.setAddress("Error: Not Fetched");
-                                 me.setCity("Error: Not Fetched");
-                             }
-                             me.setName(prefUtils.getUsername());
-                             me.setLat(location.getLatitude());
-                             me.setLon(location.getLongitude());
-                             Log.w(TAGcurrent,location.getLatitude()+","+location.getLongitude());
-                             dRef.child(prefUtils.getUsername()).setValue(me);
-                             if(!internet){
-                                Toast.makeText(getApplicationContext(),
-                                        "Your new Location will be visible to others once you get connected to Internet",
-                                        Toast.LENGTH_SHORT)
-                                        .show();
-                             }
-                             Log.w(TAGcurrent,"location: Firebase updated");
-                             prefUtils.setNewLat(location.getLatitude());
-                             prefUtils.setNewLon(location.getLongitude());
-                            }
-                        catch (IOException e) {
-                                e.printStackTrace();
-                        }
-                    }
-                });
+        if(prefUtils.isUsernameSet()) {
+            dataFetcher.updateLocation(prefUtils.getUID(),observableLocation,getApplicationContext());
+        }
+        else {
+            Snackbar.make(mainLayout,"Not Signed In",Snackbar.LENGTH_SHORT).show();
+        }
         onClickFab();
     }
 
@@ -359,21 +354,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         })
                         .setActionTextColor(Color.GREEN)
                         .show();
-                final Geocoder gc = new Geocoder(this, Locale.getDefault());
-                try {
-                    User me = new User();
-                    me.setLat(PlacePicker.getPlace(this, data).getLatLng().latitude);
-                    me.setLon(PlacePicker.getPlace(this, data).getLatLng().longitude);
-                    List<Address> add = gc.getFromLocation(me.getLat(), me.getLon(), 1);
-                    me.setAddress(PlacePicker.getPlace(this, data).getAddress().toString());
-                    me.setCity(add.get(0).getLocality());
-                    me.setName(prefUtils.getUsername());
-                    dRef.child(prefUtils.getUsername()).setValue(me);
-                    prefUtils.setNewLat(me.getLat());
-                    prefUtils.setNewLon(me.getLon());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
+                dataFetcher.updateLocation(prefUtils.getUID(),
+                        ""+PlacePicker.getPlace(this, data).getLatLng().latitude,
+                        ""+PlacePicker.getPlace(this, data).getLatLng().longitude,
+                        getApplicationContext());
             }
         }
     }
@@ -381,62 +366,46 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         gMap.clear();
         ArrayList<User> allFriends=fdb.getAllFriends();
         for(User user:allFriends){
-            double dist= SphericalUtil.computeDistanceBetween(
-                    new LatLng(prefUtils.getLastLat(),prefUtils.getLastLon()),
-                    new LatLng(user.getLat(),user.getLon()))/1000.0;
-
+            if(user.getLat()!=null && user.getLon()!=null) {
+                double dist = SphericalUtil.computeDistanceBetween(
+                        new LatLng(prefUtils.getLastLat(), prefUtils.getLastLon()),
+                        new LatLng(Double.parseDouble(user.getLat())
+                                , Double.parseDouble(user.getLon()))) / 1000.0;
+                gMap.addMarker(new MarkerOptions()
+                        .snippet(String.format("%.2f", dist) + " kms away, " +
+                                "Address: " + user.getAddress())
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                        .title(user.getName()+" : "+user.getLastupdate())
+                        .position(new LatLng(Double.parseDouble(user.getLat()), Double.parseDouble(user.getLon())))
+                );
+            }
+        }
+        if(prefUtils.isUsernameSet()) {
             gMap.addMarker(new MarkerOptions()
-                    .snippet(String.format("%.2f",dist)+" kms away from you")
-                    .position(new LatLng(user.getLat(), user.getLon()))
-                    .title(user.getName()));
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                    .title("Your Location")
+                    .position(new LatLng(prefUtils.getLastLat(), prefUtils.getLastLon()))
+            );
         }
     }
 
     public void refreshFriendsLocation() {
-        if(isInternetAvailable()) {
-            final ArrayList<String> fnames=fdb.getAllFriendsName();
-            Observable.create(new Observable.OnSubscribe<User>() {
-                @Override
-                public void call(final Subscriber<? super User> subscriber) {
-                    dRef.addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            for (DataSnapshot users : dataSnapshot.getChildren()) {
-                                User user = users.getValue(User.class);
-                                Log.w(TAG,user.getName()+" got data.");
-                                subscriber.onNext(user);
-                            }
-                            subscriber.onCompleted();
-                        }
-                        @Override
-                        public void onCancelled(DatabaseError error) {
-                            Log.w(TAG, "Failed to read value.", error.toException());
-                        }
-                    });
-                }
-            })
-            .subscribeOn(Schedulers.newThread())
-            .filter(new Func1<User, Boolean>() {
-                @Override
-                public Boolean call(User user) {
-                    Log.w(TAG,"Filtering friends");
-                    return fnames.contains(user.getName());
-                }
-            })
-            .observeOn(Schedulers.newThread())
-                .subscribe(new Action1<User>() {
-                    @Override
-                    public void call(User user) {
-                        Log.w(TAG,user.getName()+" updated");
-                        fdb.updateFriend(user,user.getName());
-                    }
-                });
-
-        }
-        else{
-            Toast.makeText(this,"Connect to Internet for updating location of Friends",Toast.LENGTH_LONG).show();
-        }
-        updateMarkers();
+       if(isInternetAvailable()) {
+           final ArrayList<Integer> fuids = fdb.getAllFriendsUids();
+           for (int fuid : fuids) {
+               dataFetcher.getFriendsLocation(prefUtils.getUID(), fuid, getApplicationContext());
+               Log.w(TAG,fuid+" updated");
+           }
+       }
+       else{
+               Toast.makeText(this,"Connect to Internet for updating location of Friends",Toast.LENGTH_LONG).show();
+       }
+       updateMarkers();
+        reqcount = (TextView) MenuItemCompat.getActionView(navigationView.getMenu().findItem(R.id.requests));
+        reqcount.setTypeface(null, Typeface.BOLD_ITALIC);
+        reqcount.setGravity(Gravity.CENTER_VERTICAL);
+        reqcount.setTextColor(Color.GREEN);
+        reqcount.setText("   "+fdb.getAllRequestsId().size() + "   ");
     }
 
     public void findFriend(){
@@ -445,20 +414,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         final AutoCompleteTextView friend = new AutoCompleteTextView(getApplicationContext());
         friend.setHint("Friend's Username");
         friend.setDropDownBackgroundResource(android.R.color.white);
-        friend.setTextColor(Color.LTGRAY);
-        friend.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_expandable_list_item_1,fdb.getAllFriendsName()));
+        friend.setTextColor(Color.BLACK);
+        friend.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_expandable_list_item_1,fdb.getAllFriendsNames()));
         friend.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG_LTR);
         builder.setView(friend);
         builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String name = friend.getText().toString();
-                User u = fdb.getFriend(name);
-                if (u == null) {
-                    Toast.makeText(getApplicationContext(), "This person is not your Friend", Toast.LENGTH_SHORT).show();
-                } else {
-                    updateCamera(u.getLat(),u.getLon());
+                String id = fdb.getFriendId(name);
+                if(id!=null) {
+                    User u = fdb.getFriend(id);
+                    if (u == null) {
+                        Toast.makeText(getApplicationContext(), "This person is not your Friend", Toast.LENGTH_SHORT).show();
+                    } else {
+                        if(u.getLat()!=null && u.getLon()!=null) {
+                            updateCamera(Double.parseDouble(u.getLat()), Double.parseDouble(u.getLon()));
+                        }
+                        else
+                            Toast.makeText(getApplicationContext(),u.getName()+" has not updated his location",Toast.LENGTH_LONG).show();
+                    }
                 }
+                else
+                    Toast.makeText(getApplicationContext(), "This person is not your Friend", Toast.LENGTH_SHORT).show();
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -487,6 +465,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if(toogle.onOptionsItemSelected(item)){
+            return true;
+        }
         switch (item.getItemId()) {
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));
@@ -500,6 +481,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case R.id.find:
                 findFriend();
+                break;
+            case R.id.signout:
+                signOut();
                 break;
             case R.id.exit:
                 /*this.finish();
@@ -521,7 +505,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     toast.setGravity(Gravity.CENTER,0,0);toast.show();
                 }
         }
-        return true;
+        return super.onOptionsItemSelected(item);
     }
 
     public void onNavigationDrawrItemClicked(MenuItem item){
@@ -543,6 +527,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.search:
                 mainLayout.closeDrawer(Gravity.LEFT);
                 findFriend();
+                break;
+            case R.id.signout:
+                mainLayout.closeDrawer(Gravity.LEFT);
+                signOut();
                 break;
             case R.id.privacy: {
                 mainLayout.closeDrawer(Gravity.LEFT);
@@ -568,6 +556,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
                 terms.create().show();
                 }
+                break;
+            case R.id.requests:
+                startActivity(new Intent(this, FriendRequests.class));
                 break;
             case R.id.terms: {
                 mainLayout.closeDrawer(Gravity.LEFT);
@@ -601,7 +592,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void turnOnGps(){
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-        alertDialog.setTitle("GPS is settings");
+        alertDialog.setTitle("GPS ");
         alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
         alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog,int which) {
@@ -623,12 +614,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return activeNetworkInfo!=null && activeNetworkInfo.isConnected();
     }
 
+    public void signOut(){
+        prefUtils.logOut();
+        for(int uid:fdb.getAllFriendsUids()){
+            fdb.deleteFriend(uid+"");
+        }
+        for(String uid:fdb.getAllRequestsId()){
+            fdb.deleteRequests(uid);
+        }
+        ((TextView) navigationView.getHeaderView(0).findViewById(R.id.email))
+                .setText("You Are Not Signed In");
+        ((TextView) navigationView.getHeaderView(0).findViewById(R.id.username))
+                .setText("Welcome");
+        reqcount.setText("   "+0+ "   ");
+        gMap.clear();
+        Toast.makeText(getApplicationContext(),"LogOut Successful",Toast.LENGTH_SHORT).show();
+    }
+
     @Override public void onConnected(@Nullable Bundle bundle) {}
     @Override public void onConnectionSuspended(int i) { }
     @Override public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
 
     @Override
-    protected void onPause() {
+    protected void onDestroy() {
         int millisec=Integer.parseInt(sp.getString(getString(R.string.pref_update_min_key),
                 getString(R.string.pref_update_min_default)))*60*1000;
         AlarmManager alarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
@@ -636,6 +644,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
         alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 millisec, millisec, alarmIntent);
-        super.onPause();
+        super.onDestroy();
+    }
+
+
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.setHeaderIcon(R.drawable.google_maps);
+        menu.setHeaderTitle("Change Map Type");
+        menu.add(0,v.getId(),0,"Satellite");
+        menu.add(0,v.getId(),0,"Terrain");
+        menu.add(0,v.getId(),0,"Normal");
+        menu.add(0,v.getId(),0,"Hybrid");
+    }
+
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        if(item.getTitle().equals("Satellite"))
+            gMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        else if(item.getTitle().equals("Terrain"))
+            gMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+        else if(item.getTitle().equals("Hybrid"))
+            gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        else
+            gMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        prefUtils.setMapType(item.getTitle().toString());
+        return true;
     }
 }

@@ -19,7 +19,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:id="@+id/maps"
-                android:name="com.google.android.gms.maps.SupportMapFragment"/>
+                android:name="com.google.android.gms.maps.SupportMapFragment">
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Map Type"
+                    android:layout_marginLeft="-5dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_gravity="bottom|left"
+                    android:id="@+id/mapType"/>
+            </fragment>
         </LinearLayout>
 
         <android.support.design.widget.FloatingActionButton
@@ -66,7 +75,7 @@
             app:headerLayout="@layout/nav_header"
             app:menu="@menu/drawer_menu"
             app:itemIconTint="@color/colorAccent"
-            android:backgroundTint="@color/colorPrimary"
+            android:background="@drawable/bg_2"
             >
     </android.support.design.widget.NavigationView>
 

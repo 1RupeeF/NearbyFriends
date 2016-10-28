@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <group >
+    <group>
         <item
             android:id="@+id/SignIn"
             android:icon="@drawable/ic_account_circle_black_18dp"
@@ -12,13 +13,18 @@
             android:icon="@drawable/account_plus"
             android:title="Add Friends"/>
         <item
-            android:id="@+id/trackList"
+            android:id="@+id/requests"
             android:icon="@drawable/track_list"
-            android:title="Tracking List"/>
+            android:title="Friend Requests"
+            app:actionViewClass="android.widget.TextView"/>
         <item
             android:id="@+id/search"
             android:title="Search Friend"
             android:icon="@drawable/ic_search_black_18dp"/>
+        <item
+            android:icon="@drawable/signout"
+            android:id="@+id/signout"
+            android:title="LogOut"/>
     </group>
     <item android:title="Others">
         <menu>

@@ -2,32 +2,26 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/empty"
-        android:icon="@drawable/overflow"
-        android:orderInCategory="101"
-        android:title="Menu"
-        app:showAsAction="always">
-        <menu>
-            <item
-                android:icon="@drawable/help"
-                android:title="Help"
-                android:id="@+id/help"
-                app:showAsAction="never"/>
-            <item
-                android:id="@+id/settings"
-                android:icon="@drawable/ic_settings_black_18dp"
-                android:title="Settings"
-                app:showAsAction="never"
-                />
-            <item
-                android:icon="@drawable/exit"
-                app:showAsAction="never"
-                android:id="@+id/exit"
-                android:title="Exit"
-                />
-
-        </menu>
-    </item>
+        android:icon="@drawable/help"
+        android:title="Help"
+        android:id="@+id/help"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/settings"
+        android:icon="@drawable/ic_settings_black_18dp"
+        android:title="Settings"
+        app:showAsAction="never"
+        />
+    <item
+        app:showAsAction="never"
+        android:id="@+id/signout"
+        android:title="SignOut"/>
+    <item
+        android:icon="@drawable/exit"
+        app:showAsAction="never"
+        android:id="@+id/exit"
+        android:title="Exit"
+        />
     <item
         android:icon="@drawable/refresh"
         android:title="Refresh"

@@ -16,25 +16,32 @@
             android:name="com.google.android.geo.API_KEY"
             android:value=" AIzaSyCNYNDfqohE3L9nNYI5P9URZyldseEUG5c  " />
 
-        <activity android:name=".MainActivity" />
-        <activity android:name=".Activities.SignUp" />
-        <activity
-            android:name=".Activities.MyFriends"
-            android:parentActivityName=".MainActivity" />
-        <activity android:name=".Activities.Welcome">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".Activities.SignUp"
+            android:parentActivityName=".MainActivity"></activity>
+        <activity
+            android:name=".Activities.MyFriends"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".Activities.Welcome"></activity>
 
         <service android:name=".services.LocationUpdateService" />
 
         <receiver android:name=".services.LocationUpdateService$AlarmReciever" />
+
         <activity
             android:name=".Prefs.SettingsActivity"
             android:label="@string/title_activity_settings"
+            android:parentActivityName=".MainActivity"></activity>
+        <activity android:name=".Activities.FriendRequests"
             android:parentActivityName=".MainActivity">
+
         </activity>
     </application>
 

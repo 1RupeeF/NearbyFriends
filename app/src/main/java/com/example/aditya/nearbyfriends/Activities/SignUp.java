@@ -1,61 +1,58 @@
 package com.example.aditya.nearbyfriends.Activities;
-
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
+import android.graphics.Color;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.design.widget.TextInputEditText;
-import android.widget.Button;
-import android.widget.Toast;
+import android.view.View;
 
 import com.example.aditya.nearbyfriends.MainActivity;
-import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
 import com.example.aditya.nearbyfriends.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
+
 
 public class SignUp extends AppCompatActivity {
 
-    @BindView(R.id.username) TextInputEditText uname;
-    PrefUtils pref;
 
-    private String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.INTERNET};
-    private int REQUEST_PERMISSIONS_KEY = 1;
+    @BindView(R.id.tabs) TabLayout tabLayout;
+    @BindView(R.id.viewpager) ViewPager viewPager;
+    @BindView(R.id.activity_sign_up) CoordinatorLayout mainLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_up);
-        pref=new PrefUtils(this);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSIONS_KEY);
-        }
-        if(pref.isUsernameSet()){
-            startActivity(new Intent(this,MainActivity.class));
-        }
+        super.onCreate(savedInstanceState);setContentView(R.layout.activity_sign_up);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ButterKnife.bind(this);
-    }
+        setupViewPager(viewPager);
 
-    @OnClick(R.id.submit)
-    public void submitClick(){
-        if(!uname.getText().equals("")) {
-            pref.setUsername(uname.getText().toString());
-            uname.setEnabled(false);
-            changeActivity();
-        }
-        else{
-            Toast.makeText(getApplicationContext(),"Enter a Username",Toast.LENGTH_SHORT).show();
+        String tabText[]={"SignIn (Old User)","SignUp (New User)"};
+        tabLayout.setupWithViewPager(viewPager);
+        for (int i = 0; i < tabLayout.getTabCount(); i++) {
+            tabLayout.getTabAt(i).setText(tabText[i]);
         }
     }
 
-    public void changeActivity(){
-        Intent intent=new Intent(this,MainActivity.class);
-        startActivity(intent);
+    private void setupViewPager(ViewPager viewPager) {
+        SignFragmentAdapter adapter = new SignFragmentAdapter(getSupportFragmentManager());
+        adapter.addFragment(new Login());
+        adapter.addFragment(new Register());
+        viewPager.setAdapter(adapter);
+    }
+
+    public void alreadySignedIn(){
+        Snackbar.make(mainLayout, "Already Signed In", Snackbar.LENGTH_SHORT)
+                .setAction("Home", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                    }
+                })
+                .setActionTextColor(Color.YELLOW)
+                .show();
     }
 }

@@ -18,10 +18,24 @@ public class PrefUtils {
     private final String FIRST_TIME="first";
     private final String LAST_LAT="lat";
     private final String LAST_LON="lon";
+    private final String UID="uid";
+    private final String EMAIL="email";
+    private final String THREAD="threadcompletion";
+    private final String MAP_TYPE="lastmaptype";
     public PrefUtils(Context context){
         sharedPreferences=context.getSharedPreferences("pref",MODE_PRIVATE);
         edit=sharedPreferences.edit();
     }
+
+    public void setMapType(String s){
+        edit.putString(MAP_TYPE,s);
+        edit.commit();
+    }
+
+    public String getMapType(){
+        return sharedPreferences.getString(MAP_TYPE,"Normal");
+    }
+
 
     public String getUsername() {
         return sharedPreferences.getString(USERNAME,null);
@@ -30,6 +44,30 @@ public class PrefUtils {
     public void setUsername(String uname) {
         edit.putString(USERNAME,uname);
         edit.putBoolean(USER_SET,true);
+        edit.commit();
+    }
+
+    public void setUID(int uid){
+        edit.putInt(UID,uid);
+        edit.commit();
+    }
+    public int getUID(){
+        return sharedPreferences.getInt(UID,0);
+    }
+
+    public void setEMAIL(String email){
+        edit.putString(EMAIL,email);
+        edit.commit();
+    }
+    public String getEMAIL(){
+        return sharedPreferences.getString(EMAIL,null);
+    }
+
+    public void logOut(){
+        edit.putInt(UID,0);
+        edit.putBoolean(USER_SET,false);
+        edit.putString(USERNAME,null);
+        edit.putString(EMAIL,null);
         edit.commit();
     }
 

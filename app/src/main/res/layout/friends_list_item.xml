@@ -47,6 +47,24 @@
                     android:id="@+id/address"
                     android:layout_weight="1"
                     android:text="address"
+                    android:layout_marginBottom="1dp"
+                    android:textSize="10dp"
+                    android:gravity="center"
+                    android:background="#4689b3"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/coords"
+                    android:textSize="10dp"
+                    android:textColor="@color/colorAccent"
+                    android:gravity="center"
+                    android:layout_marginBottom="1dp"
+                    android:background="#4689b3"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/lastupdate"
+                    android:textColor="@color/colorAccent"
                     android:textSize="10dp"
                     android:gravity="center"
                     android:background="#4689b3"/>

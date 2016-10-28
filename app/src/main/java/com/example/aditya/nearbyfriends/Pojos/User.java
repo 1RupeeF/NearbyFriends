@@ -1,30 +1,35 @@
 package com.example.aditya.nearbyfriends.Pojos;
 
 /**
- * Created by aditya on 3/10/16.
+ * Created by aditya on 24/10/16.
  */
 
 public class User {
-    private String address;
-    private double lat;
-    private double lon;
-    private String city;
+    private String uid;
     private String name;
+    private String lat;
+    private String lon;
+    private String address;
+    private String city;
+    private String lastupdate;
 
 
-    public User(){
-    }
-
-    public User(String address, double lat, double lon, String city) {
-        this.address = address;
+    public User(String uid, String name, String lat, String lon, String address, String city, String lastupdate) {
+        this.uid = uid;
+        this.name = name;
         this.lat = lat;
         this.lon = lon;
-        this.city=city;
-        this.name="";
+        this.address = address;
+        this.city = city;
+        this.lastupdate = lastupdate;
     }
 
-    public String getCity() {
-        return city;
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public String getName() {
@@ -35,8 +40,20 @@ public class User {
         this.name = name;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public String getLat() {
+        return lat;
+    }
+
+    public void setLat(String lat) {
+        this.lat = lat;
+    }
+
+    public String getLon() {
+        return lon;
+    }
+
+    public void setLon(String lon) {
+        this.lon = lon;
     }
 
     public String getAddress() {
@@ -47,19 +64,19 @@ public class User {
         this.address = address;
     }
 
-    public double getLat() {
-        return lat;
+    public String getCity() {
+        return city;
     }
 
-    public void setLat(double lat) {
-        this.lat = lat;
+    public void setCity(String city) {
+        this.city = city;
     }
 
-    public double getLon() {
-        return lon;
+    public String getLastupdate() {
+        return lastupdate;
     }
 
-    public void setLon(double lon) {
-        this.lon = lon;
+    public void setLastupdate(String lastupdate) {
+        this.lastupdate = lastupdate;
     }
 }
