@@ -24,6 +24,8 @@ public class User {
         this.lastupdate = lastupdate;
     }
 
+    public User() {}
+
     public String getUid() {
         return uid;
     }

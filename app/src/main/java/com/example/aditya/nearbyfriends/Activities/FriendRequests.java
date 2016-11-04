@@ -51,7 +51,7 @@ public class FriendRequests extends AppCompatActivity implements SwipeRefreshLay
         swipeRefreshLayout.setRefreshing(true);
         ArrayList<HashMap<String,String>> requests = fdb.getAllRequests();
         Collections.reverse(requests);
-        radapter = new FriendRequestsAdapter(requests,getApplicationContext());
+        radapter = new FriendRequestsAdapter(requests,getApplicationContext(),1);
         rv.setAdapter(radapter);
         swipeRefreshLayout.setRefreshing(false);
     }

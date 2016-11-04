@@ -9,8 +9,22 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.example.aditya.nearbyfriends.Pojos.FriendRequest;
 import com.example.aditya.nearbyfriends.Pojos.User;
 
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+import org.joda.time.Hours;
+import org.joda.time.Minutes;
+import org.joda.time.Months;
+import org.joda.time.ReadableInstant;
+import org.joda.time.Seconds;
+import org.joda.time.Years;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Scanner;
+import java.util.TimeZone;
 
 
 /**
@@ -273,5 +287,41 @@ public class FriendDB extends SQLiteOpenHelper{
         return b;
     }
 
-
+    public String calculateTimeDifference(String date) {
+        DateTime oldd=DateTime.parse(date, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
+        DateTime newd=DateTime.now();
+        Years years = Years.yearsBetween(oldd,newd);
+        Months months = Months.monthsBetween(oldd,newd);
+        Days days=Days.daysBetween(oldd,newd);
+        Hours hours=Hours.hoursBetween(oldd,newd);
+        Minutes minutes=Minutes.minutesBetween(oldd,newd);
+        Seconds seconds= Seconds.secondsBetween(oldd,newd);
+        String diff;
+        if(years.getYears()>=1){
+            diff= years.getYears()+" Years, "+months.getMonths()%12+" Months";
+        }
+        else{
+            if(months.getMonths()>=1){
+                diff= months.getMonths()+" Months, "+days.getDays()%30+" Days";
+            }
+            else {
+                if(days.getDays()>=1){
+                    diff= days.getDays()+" Days, "+hours.getHours()%24+" Hours";
+                }
+                else {
+                    if(hours.getHours()>=1){
+                        diff= hours.getHours()+" Hours, "+minutes.getMinutes()%60+" Mins";
+                    }
+                    else {
+                        if(minutes.getMinutes()>=1) {
+                            diff= minutes.getMinutes() + " Mins, " + seconds.getSeconds() % 60 + " Secs";
+                        }
+                        else
+                            diff= seconds.getSeconds()+" Secs";
+                    }
+                }
+            }
+        }
+        return diff;
+    }
 }

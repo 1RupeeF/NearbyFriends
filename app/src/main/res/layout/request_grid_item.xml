@@ -12,10 +12,10 @@
         android:padding="2dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/holo_green_light">
+        android:background="@android:color/holo_blue_light">
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:layout_gravity="center_horizontal"
             android:background="@android:color/white"
             android:layout_marginBottom="2dp"
@@ -41,17 +41,25 @@
             android:background="@android:color/white"
             android:text="email"
             />
-        <Button
-            android:background="@android:color/holo_blue_light"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="3dp"
-            android:text="Accept"
-            android:id="@+id/accept"
-            android:textSize="20dp"/>
-
-
-
-
+            android:layout_height="match_parent"
+            android:layout_marginTop="1dp"
+            android:orientation="horizontal">
+            <Button
+                android:background="@android:color/holo_green_light"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Accept"
+                android:id="@+id/accept"
+                android:textSize="10dp"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:background="@android:color/holo_red_light"
+                android:layout_height="wrap_content"
+                android:text="Reject"
+                android:id="@+id/reject"
+                android:textSize="10dp"/>
+        </LinearLayout>
     </LinearLayout>
 </android.support.v7.widget.CardView>

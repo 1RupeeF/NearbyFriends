@@ -10,6 +10,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,18 +53,27 @@ public class Register extends Fragment {
             String usernmae = uname.getText().toString();
             String password = pass.getText().toString();
             String emailid = email.getText().toString();
-            if (!usernmae.equals("") && !password.equals("") && !emailid.equals("")) {
-                if (uname.getText().toString().length() >= 4) {
-                    error.setVisibility(View.INVISIBLE);
-                    if (isInternetAvailable())
-                        dataFetcher.register(emailid, password, usernmae, getContext());
-                } else {
-                    error.setText("Enter a Username (atleast 4 characters)");
-                    error.setVisibility(View.VISIBLE);
+            if (isvalidEmail(emailid)) {
+                if(!password.equals("") ) {
+                    if (uname.getText().toString().length() >= 4) {
+                        error.setVisibility(View.INVISIBLE);
+                        if (isInternetAvailable()) {
+                            dataFetcher.register(emailid, password, usernmae, getContext());
+                            email.setText("");
+                            pass.setText("");
+                            uname.setText("");
+                        } else {
+                            Toast.makeText(getContext(), "Seems you are offline. Get Online to Continue!!", Toast.LENGTH_LONG).show();
+                        }
+                    } else {
+                        uname.setError("Username atleast 4 characters");
+                    }
+                }
+                else {
+                    pass.setError("Password cannot be empty");
                 }
             } else {
-                error.setText("Please Enter all Fields");
-                error.setVisibility(View.VISIBLE);
+                email.setError("InValid email");
             }
         }
         else{
@@ -77,5 +87,10 @@ public class Register extends Fragment {
         ConnectivityManager connectivityManager=(ConnectivityManager)getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo=connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo!=null && activeNetworkInfo.isConnected();
+    }
+
+
+    public boolean isvalidEmail(String e){
+        return !e.equals("") && Patterns.EMAIL_ADDRESS.matcher(e).matches();
     }
 }

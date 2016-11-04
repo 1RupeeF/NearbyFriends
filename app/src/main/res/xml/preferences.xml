@@ -32,7 +32,7 @@
                     android:key="@string/pref_use_track_list_key"
                     android:icon="@drawable/track_list"
                     android:summary="Notification will only be shown if friends are in tracking list"
-                    android:defaultValue="false"
+                    android:defaultValue="true"
                     android:title="Use tracking list"/>
 
         </PreferenceScreen>
@@ -45,6 +45,6 @@
             android:key="@string/pref_update_min_key"
             android:summary="Time Interval after which locations of friend gets updated."
             android:dialogTitle="Time Interval"
-            android:hint="Time Interval(in meters)"
+            android:hint="Time Interval(in minutes)"
             />
 </PreferenceScreen>

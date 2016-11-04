@@ -19,8 +19,12 @@
             app:actionViewClass="android.widget.TextView"/>
         <item
             android:id="@+id/search"
-            android:title="Search Friend"
-            android:icon="@drawable/ic_search_black_18dp"/>
+            android:title="Locate Friend"
+            android:icon="@drawable/ic_locate"/>
+        <item
+            android:id="@+id/searchFriends"
+            android:icon="@drawable/ic_search_black_18dp"
+            android:title="Search Friends"/>
         <item
             android:icon="@drawable/signout"
             android:id="@+id/signout"

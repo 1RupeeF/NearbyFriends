@@ -49,7 +49,6 @@ public class LocationUpdateService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         prefUtils=new PrefUtils(getApplicationContext());
-        dataFetcher.getFriendRequests(prefUtils.getUID()+"",getApplicationContext());
         for(int uid:fdb.getAllFriendsUids()){
             dataFetcher.getFriendsLocation(prefUtils.getUID(),uid,getApplicationContext());
         }
@@ -57,6 +56,8 @@ public class LocationUpdateService extends IntentService {
         final boolean shownoti= sp.getBoolean(getString(R.string.pref_show_notifications_key),true);
         final int mindist= Integer.parseInt(sp.getString(getString(R.string.pref_dist_key),getString(R.string.pref_dist_default)));
         final boolean notsound=sp.getBoolean(getString(R.string.pref_notification_sound),true);
+        final boolean trackEnabled=sp.getBoolean(getString(R.string.pref_use_track_list_key),false);
+        Log.w(TAGs,"track: "+trackEnabled);
         if(isInternetAvailable()) {
             ArrayList<User> allFriends = fdb.getAllFriends();
             for (User user : allFriends) {
@@ -66,7 +67,13 @@ public class LocationUpdateService extends IntentService {
                                 Double.parseDouble(user.getLon())),
                                 new LatLng(prefUtils.getLastLat(), prefUtils.getLastLon()));
                         Log.w(TAGs, user.getName() + ": dist=" + dist);
+                        if(trackEnabled && !fdb.isInTrackerList(user.getUid())){
+                            Log.w(TAGs,"track: no notify");
+                            continue;
+                        }
+                        Log.w(TAGs,"notify");
                         if (dist < mindist) {
+                            Log.w(TAGs,"notified");
                             NotificationCompat.Builder notification = new NotificationCompat.Builder(getApplicationContext());
                             notification.setContentText(user.getName() + " is " + String.format("%.3f", dist) + " meters away");
                             notification.setSmallIcon(R.drawable.app_icon);

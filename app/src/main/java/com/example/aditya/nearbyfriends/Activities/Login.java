@@ -11,11 +11,14 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
 import com.example.aditya.nearbyfriends.R;
 import com.example.aditya.nearbyfriends.db.DataFetcher;
@@ -41,21 +44,32 @@ public class Login extends Fragment {
         return view;
     }
 
+    @OnClick(R.id.forgot)
+    public void forgot(){
+        startActivity(new Intent(getContext(),PasswordRecovery.class));
+    }
+
     @OnClick(R.id.submit)
     public void login() {
         PrefUtils prefUtils = new PrefUtils(getContext());
         if (!prefUtils.isUsernameSet()){
             String emailid = email.getText().toString();
             String password = pass.getText().toString();
-            if (!emailid.equals("") && !password.equals("")) {
-                error.setVisibility(View.INVISIBLE);
-                if (isInternetAvailable()) {
-                    dataFetcher.signin(emailid, password, getContext());
-                    email.setText("");pass.setText("");
+            if (isvalidEmail(email.getText().toString())) {
+                if(!password.equals("")) {
+                    if (isInternetAvailable()) {
+                        dataFetcher.signin(emailid, password, getContext());
+                        email.setText("");
+                        pass.setText("");
+                    } else {
+                        Toast.makeText(getContext(), "Seems you are offline. Get Online to Continue!!", Toast.LENGTH_LONG).show();
+                    }
+                }
+                else{
+                    pass.setError("Password cannot be empty");
                 }
             } else {
-                error.setText("Please enter all Fields");
-                error.setVisibility(View.VISIBLE);
+                email.setError("Invalid Email");
             }
         }
         else{
@@ -68,5 +82,10 @@ public class Login extends Fragment {
         ConnectivityManager connectivityManager=(ConnectivityManager)getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo=connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo!=null && activeNetworkInfo.isConnected();
+    }
+
+
+    public boolean isvalidEmail(String e){
+        return !e.equals("") && Patterns.EMAIL_ADDRESS.matcher(e).matches();
     }
 }

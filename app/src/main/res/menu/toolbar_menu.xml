@@ -29,7 +29,7 @@
         app:showAsAction="always"/>
     <item
         android:id="@+id/find"
-        android:icon="@drawable/ic_search_black_18dp"
+        android:icon="@drawable/ic_locate"
         android:title="Search Friend"
         app:showAsAction="always"/>
     <item
@@ -37,5 +37,4 @@
         android:title="@string/notifications"
         app:showAsAction="always"
         />
-
 </menu>

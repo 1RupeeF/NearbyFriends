@@ -16,6 +16,12 @@
             android:name="com.google.android.geo.API_KEY"
             android:value=" AIzaSyCNYNDfqohE3L9nNYI5P9URZyldseEUG5c  " />
 
+        <service android:name=".services.LocationUpdateService" />
+        <service android:name=".services.RequestsAndLocationUpdater" />
+
+        <receiver android:name=".services.LocationUpdateService$AlarmReciever" />
+        <receiver android:name=".services.RequestsAndLocationUpdater$AlarmReciever" />
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,26 +29,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".Activities.Welcome" />
         <activity
             android:name=".Activities.SignUp"
-            android:parentActivityName=".MainActivity"></activity>
-        <activity
-            android:name=".Activities.MyFriends"
             android:parentActivityName=".MainActivity" />
-        <activity android:name=".Activities.Welcome"></activity>
-
-        <service android:name=".services.LocationUpdateService" />
-
-        <receiver android:name=".services.LocationUpdateService$AlarmReciever" />
-
         <activity
             android:name=".Prefs.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".MainActivity"></activity>
-        <activity android:name=".Activities.FriendRequests"
-            android:parentActivityName=".MainActivity">
-
-        </activity>
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".Activities.FriendRequests"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".Activities.PasswordRecovery"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".Activities.MyFriends"
+            android:parentActivityName=".MainActivity"/>
+        <activity android:name=".Activities.SearchActivity"
+            android:parentActivityName=".MainActivity"/>
     </application>
 
 </manifest>

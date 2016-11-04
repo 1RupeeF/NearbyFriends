@@ -8,20 +8,82 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.aditya.nearbyfriends.Activities.MyFriends">
+
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:padding="5dp"
         android:background="@drawable/bg_2">
-
-        <android.support.v7.widget.RecyclerView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scrollbars="vertical"
-            android:id="@+id/recyclerView"
-            >
-        </android.support.v7.widget.RecyclerView>
+            android:orientation="vertical"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="5dp"
+                android:background="@color/colorPrimary">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="15dp"
+                    android:id="@+id/trackingyoutext"
+                    android:layout_gravity="center"
+                    android:visibility="visible"
+                    android:gravity="center"
+                    android:text="\t             Friends Tracking You"
+                    android:layout_weight="1"
+                    android:textColor="@color/colorAccent" />
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/refresh"
+                    android:layout_gravity="end|right"
+                    android:background="@android:color/transparent"
+                    android:id="@+id/refresh"
+                    />
+                <android.support.v4.widget.Space
+                    android:layout_width="5dp"
+                    android:layout_height="match_parent" />
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/arrows_up"
+                    android:background="@android:color/transparent"
+                    android:layout_gravity="end|right"
+                    android:id="@+id/minmax"/>
+                <android.support.v4.widget.Space
+                    android:layout_width="5dp"
+                    android:layout_height="match_parent" />
+            </LinearLayout>
 
+            <android.support.v7.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:scrollbars="horizontal"
+                android:id="@+id/recyclerView0"
+                android:layout_marginTop="2dp"
+                android:layout_height="wrap_content">
+            </android.support.v7.widget.RecyclerView>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Your Friends"
+                android:padding="5dp"
+                android:textSize="15dp"
+                android:gravity="center"
+                android:layout_marginTop="7dp"
+                android:textColor="@color/colorAccent"
+                android:background="@color/colorPrimary"
+                android:layout_marginBottom="5dp"/>
+            <android.support.v7.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:id="@+id/recyclerView"
+                >
+            </android.support.v7.widget.RecyclerView>
+        </LinearLayout>
         <android.support.design.widget.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

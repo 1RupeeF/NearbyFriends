@@ -2,17 +2,24 @@ package com.example.aditya.nearbyfriends.db;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Geocoder;
 import android.location.Location;
 import android.media.RingtoneManager;
+import android.os.AsyncTask;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.widget.Toast;
 
 import com.example.aditya.nearbyfriends.Activities.FriendRequests;
+import com.example.aditya.nearbyfriends.Activities.FriendRequestsAdapter;
+import com.example.aditya.nearbyfriends.Activities.MyFriends;
+import com.example.aditya.nearbyfriends.Activities.MyFriendsAdapter;
 import com.example.aditya.nearbyfriends.HttpRequest;
 import com.example.aditya.nearbyfriends.MainActivity;
 import com.example.aditya.nearbyfriends.Pojos.DefaultResponse;
@@ -22,6 +29,7 @@ import com.example.aditya.nearbyfriends.Pojos.FriendsLocation;
 import com.example.aditya.nearbyfriends.Pojos.LocationUpdate;
 import com.example.aditya.nearbyfriends.Pojos.RegisterRequest;
 import com.example.aditya.nearbyfriends.Pojos.SignInResponse;
+import com.example.aditya.nearbyfriends.Pojos.User;
 import com.example.aditya.nearbyfriends.Prefs.PrefUtils;
 import com.example.aditya.nearbyfriends.R;
 
@@ -32,11 +40,13 @@ import java.util.Locale;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 /**
@@ -57,6 +67,7 @@ public class DataFetcher {
 
     public void register(final String email, final String pass, final String name, final Context context){
         final PrefUtils prefUtils=new PrefUtils(context);
+        final ProgressDialog dialog=ProgressDialog.show(context,"Register","Registering "+name,true,false);
         Observable.create(new Observable.OnSubscribe<DefaultResponse>() {
             @Override
             public void call(final Subscriber<? super DefaultResponse> subscriber) {
@@ -68,8 +79,11 @@ public class DataFetcher {
                         DefaultResponse defaultResponse=response.body();
                         if(defaultResponse.getStatus().equals("ok"))
                             subscriber.onNext(defaultResponse);
-                        else
-                            Toast.makeText(context,"Registration Failed",Toast.LENGTH_SHORT).show();
+                        else {
+                            Toast.makeText(context, "Registration Failed! Email already in use.", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                        }
+                        subscriber.onCompleted();
                     }
                     @Override
                     public void onFailure(Call<DefaultResponse> call, Throwable t) {
@@ -83,15 +97,11 @@ public class DataFetcher {
                 .subscribe(new Action1<DefaultResponse>() {
                     @Override
                     public void call(DefaultResponse defaultResponse) {
-                        if(defaultResponse.getStatus().equals("ok")){
-                            prefUtils.setUsername(name);
-                            prefUtils.setEMAIL(email);
-                            prefUtils.setUID(defaultResponse.getUid());
-                            Toast.makeText(context,"Registration Done(UID: "+defaultResponse.getUid()+")",Toast.LENGTH_SHORT).show();
-                        }
-                        else{
-                            Toast.makeText(context,"Email id already registered with us.",Toast.LENGTH_SHORT).show();
-                        }
+                        prefUtils.setUsername(name);
+                        prefUtils.setEMAIL(email);
+                        prefUtils.setUID(defaultResponse.getUid());
+                        dialog.dismiss();
+                        Toast.makeText(context, "Registration Done(UID: " + defaultResponse.getUid() + ")", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -254,7 +264,8 @@ public class DataFetcher {
                         subscriber.onCompleted();
                     }
                     @Override
-                    public void onFailure(Call<FriendsLocation> call, Throwable t) {}
+                    public void onFailure(Call<FriendsLocation> call, Throwable t) {
+                    }
                 });
             }
         })
@@ -281,8 +292,7 @@ public class DataFetcher {
                             boolean b = fdb.updateFriend("" + fuid, friendsLocation.getLat(), friendsLocation.getLon(),
                                     friendsLocation.getName(), friendsLocation.getTime(), address, city);
                             Log.v("datafetcher", fuid + "friend location updated");
-                        }
-                        else{
+                        } else {
                             boolean b = fdb.updateFriend("" + fuid, friendsLocation.getLat(), friendsLocation.getLon(),
                                     friendsLocation.getName(), friendsLocation.getTime(), null, null);
                             Log.v("datafetcher", fuid + "friend location updated");
@@ -294,6 +304,7 @@ public class DataFetcher {
     public void signin(String email, String pass,final Context context){
         final RequestBody remail=RequestBody.create(MediaType.parse("text/plain"),email);
         final RequestBody rpass=RequestBody.create(MediaType.parse("text/plain"),pass);
+        final ProgressDialog dialog=ProgressDialog.show(context,"SignIn","Signing In..",true,false);
         Observable.create(new Observable.OnSubscribe<SignInResponse>() {
             @Override
             public void call(final Subscriber<? super SignInResponse> subscriber) {
@@ -306,11 +317,13 @@ public class DataFetcher {
                                     response.body().getUid()+" )",Toast.LENGTH_SHORT).show();
                             subscriber.onNext(response.body());
                         }
-                        else
-                            Toast.makeText(context,"Sign In Failed",Toast.LENGTH_SHORT).show();
+                        else {
+                            Toast.makeText(context, "Sign In Failed", Toast.LENGTH_SHORT).show();
+                        }
+                        subscriber.onCompleted();
                     }
                     @Override
-                    public void onFailure(Call<SignInResponse> call, Throwable t) {}
+                    public void onFailure(Call<SignInResponse> call, Throwable t) {dialog.dismiss();}
                 });
             }
         })
@@ -319,12 +332,21 @@ public class DataFetcher {
                 .subscribe(new Action1<SignInResponse>() {
                     @Override
                     public void call(SignInResponse signInResponse) {
-                        PrefUtils prefUtils=new PrefUtils(context);
+                        PrefUtils prefUtils = new PrefUtils(context);
                         prefUtils.setUID(Integer.parseInt(signInResponse.getUid()));
                         prefUtils.setUsername(signInResponse.getName());
                         prefUtils.setEMAIL(signInResponse.getEmail());
-                        getFriends(signInResponse.getUid(),context);
-                        getFriendRequests(signInResponse.getUid(),context);
+                        dataFetcher.getFriends(signInResponse.getUid(), context);
+                        dataFetcher.getFriendRequests(signInResponse.getUid(), context);
+                    }
+                },
+                        new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {}},
+                        new Action0() {
+                    @Override
+                    public void call() { //onCompleted
+                        dialog.dismiss();
                     }
                 });
     }
@@ -380,7 +402,6 @@ public class DataFetcher {
     public void acceptRequest(String uid, String fuid,final String name,final Context context){
         final RequestBody ruid=RequestBody.create(MediaType.parse("text/plain"),uid);
         final RequestBody rfuid=RequestBody.create(MediaType.parse("text?plain"),fuid);
-
         Observable.create(new Observable.OnSubscribe<DefaultResponse>() {
             @Override
             public void call(final Subscriber<? super DefaultResponse> subscriber) {
@@ -410,6 +431,103 @@ public class DataFetcher {
                         fdb.deleteRequests(defaultResponse.getUid()+"");
                     }
                 });
+    }
+
+    public void reject(String uid, String fuid,final Context context){
+        final RequestBody ruid=RequestBody.create(MediaType.parse("text/plain"),uid);
+        final RequestBody rfuid=RequestBody.create(MediaType.parse("text/plain"),fuid);
+        Observable.create(new Observable.OnSubscribe<DefaultResponse>() {
+            @Override
+            public void call(final Subscriber<? super DefaultResponse> subscriber) {
+                Call<DefaultResponse> responseCall =mainInterface.reject(ruid,rfuid);
+                responseCall.enqueue(new Callback<DefaultResponse>() {
+                    @Override
+                    public void onResponse(Call<DefaultResponse> call, Response<DefaultResponse> response) {
+                        if(response.body().getStatus().equals("ok")){
+                            Toast.makeText(context,"Friend Request rejected",Toast.LENGTH_SHORT).show();
+                            subscriber.onNext(response.body());
+                        }
+                        else {
+                            Toast.makeText(context,"Try Again Later",Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<DefaultResponse> call, Throwable t) {}
+                });
+            }
+        }).subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(new Action1<DefaultResponse>() {
+                    @Override
+                    public void call(DefaultResponse defaultResponse) {
+                        FriendDB fdb=new FriendDB(context,null,null,1);
+                        fdb.deleteRequests(defaultResponse.getUid()+"");
+                    }
+                });
+    }
+
+    public void removeFriend(String uid,final String fuid,final Context context){
+        final RequestBody ruid=RequestBody.create(MediaType.parse("text/plain"),uid);
+        final RequestBody rfuid=RequestBody.create(MediaType.parse("text/plain"),fuid);
+        Observable.create(new Observable.OnSubscribe<DefaultResponse>() {
+            @Override
+            public void call(final Subscriber<? super DefaultResponse> subscriber) {
+                Call<DefaultResponse> responseCall =mainInterface.reject(rfuid,ruid);
+                responseCall.enqueue(new Callback<DefaultResponse>() {
+                    @Override
+                    public void onResponse(Call<DefaultResponse> call, Response<DefaultResponse> response) {
+                        if(response.body().getStatus().equals("ok")){
+                            Toast t=Toast.makeText(context,"Removed as a Friend",Toast.LENGTH_SHORT);
+                            t.setGravity(Gravity.CENTER,0,0);
+                            t.show();
+                            subscriber.onNext(response.body());
+                        }
+                        else {
+                            Toast.makeText(context,"Try Again Later",Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<DefaultResponse> call, Throwable t) {}
+                });
+            }
+        }).subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(new Action1<DefaultResponse>() {
+                    @Override
+                    public void call(DefaultResponse defaultResponse) {
+                        FriendDB fdb=new FriendDB(context,null,null,1);
+                        fdb.deleteFriend(fuid);
+                    }
+                });
+    }
+
+    public void removeTracker(String uid, String fuid,final Context context){
+        final RequestBody ruid=RequestBody.create(MediaType.parse("text/plain"),uid);
+        final RequestBody rfuid=RequestBody.create(MediaType.parse("text/plain"),fuid);
+        Observable.create(new Observable.OnSubscribe<DefaultResponse>() {
+            @Override
+            public void call(final Subscriber<? super DefaultResponse> subscriber) {
+                Call<DefaultResponse> responseCall =mainInterface.reject(ruid,rfuid);
+                responseCall.enqueue(new Callback<DefaultResponse>() {
+                    @Override
+                    public void onResponse(Call<DefaultResponse> call, Response<DefaultResponse> response) {
+                        if(response.body().getStatus().equals("ok")){
+                            Toast.makeText(context,"Removed as tracker",Toast.LENGTH_SHORT).show();
+                            subscriber.onNext(response.body());
+                        }
+                        else {
+                            Toast.makeText(context,"Try Again Later",Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<DefaultResponse> call, Throwable t) {}
+                });
+            }
+        }).subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(new Action1<DefaultResponse>() {
+                    @Override
+                    public void call(DefaultResponse defaultResponse) {}});
     }
 
 }

@@ -1,12 +1,15 @@
 package com.example.aditya.nearbyfriends;
 
+import com.example.aditya.nearbyfriends.Activities.FriendRequests;
 import com.example.aditya.nearbyfriends.Pojos.DefaultResponse;
 import com.example.aditya.nearbyfriends.Pojos.FriendRequest;
 import com.example.aditya.nearbyfriends.Pojos.FriendsList;
 import com.example.aditya.nearbyfriends.Pojos.FriendsLocation;
 import com.example.aditya.nearbyfriends.Pojos.LocationUpdate;
+import com.example.aditya.nearbyfriends.Pojos.RecoverRequest;
 import com.example.aditya.nearbyfriends.Pojos.RegisterRequest;
 import com.example.aditya.nearbyfriends.Pojos.SignInResponse;
+import com.example.aditya.nearbyfriends.db.DataFetcher;
 
 import okhttp3.RequestBody;
 import retrofit2.Call;
@@ -72,5 +75,29 @@ public class HttpRequest {
         Call<FriendRequest> getRequests(
                 @Part("uid") RequestBody uid);
 
+        @Multipart
+        @POST("rejectasstracker.php")
+        Call<DefaultResponse> reject(
+                @Part("uid") RequestBody uid,
+                @Part("fuid") RequestBody fuid);
+
+        @Multipart
+        @POST("getPeopleTracking.php")
+        Call<FriendRequest> getTrackers(
+                @Part("uid") RequestBody uid);
+
+        @Multipart
+        @POST("sendcode.php")
+        Call<DefaultResponse> sendCode(
+                @Part("email") RequestBody email);
+
+        @POST("recover.php")
+        Call<DefaultResponse> recover(
+                @Body RecoverRequest recoverRequest);
+
+        @Multipart
+        @POST("search.php")
+        Call<FriendRequest> search(
+                @Part("pattern") RequestBody pattern);
     }
 }
